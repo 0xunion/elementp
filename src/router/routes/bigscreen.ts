@@ -8,6 +8,16 @@ enum HelloRoute {
     NAME = 'hello',
 }
 
+export enum LoginRoute {
+    PATH = '/bigscreen/login',
+    NAME = 'login',
+}
+
+enum InitRootRoute {
+    PATH = '/bigscreen/init_root',
+    NAME = 'init_root',
+}
+
 import {
     RouteRecordRaw
 } from 'vue-router'
@@ -21,6 +31,16 @@ const routes: RouteRecordRaw = {
             path: HelloRoute.PATH,
             name: HelloRoute.NAME,
             component: () => import('@/views/bigscreen/home.vue')
+        },
+        {
+            path: LoginRoute.PATH,
+            name: LoginRoute.NAME,
+            component: () => import('@/views/bigscreen/login.vue')
+        },
+        {
+            path: InitRootRoute.PATH,
+            name: InitRootRoute.NAME,
+            component: () => import('@/views/bigscreen/init.vue')
         },
         {
             path: BigScreenRoutes.PATH,
