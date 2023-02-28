@@ -1,12 +1,17 @@
 import {createRouter,createWebHistory} from 'vue-router'
+
+import routes from '@/router/routes/index'
+
 const router = createRouter({
     history: createWebHistory(),
     routes: [
+        routes.admin,
+        routes.bigscreen,
+        routes.web,
         {
             path: '/',
-            name: 'home',
-            component: () => import('../views/home.vue')
-        }]
-		
+            redirect: '/web'
+        }
+    ]
 })
 export default router
