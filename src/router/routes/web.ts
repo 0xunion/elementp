@@ -9,8 +9,18 @@ export enum WebRoutesHome {
     FILE = '@/views/web/home/home.vue',
 }
 
+export enum WebRoutesAdmin {
+    PATH = '/web/admin',
+    NAME = 'web_admin',
+    FILE = '@/views/web/admin/index.vue',
+}
+
 import { RouteRecordRaw } from 'vue-router'
 import store from '@/store'
+
+import {
+    routes as admin_routes
+} from '@/router/routes/admin/admin'
 
 const requireAdmin = () => {
     return store.getters['user/isAdmin']
@@ -19,13 +29,6 @@ const requireAdmin = () => {
 const notRequire = () => {
     return true
 }
-
-import {
-    Document as DocumentIcon,
-    Menu as IconMenu,
-    Location as IconLocation,
-    Setting as IconSetting,
-} from '@element-plus/icons-vue'
 
 const routes: RouteRecordRaw = {
     path: WebRoutes.PATH,
@@ -39,8 +42,17 @@ const routes: RouteRecordRaw = {
             meta : {
                 title: '个人中心',
                 require: notRequire,
-                icon: DocumentIcon,
             }
+        },
+        {
+            path: WebRoutesAdmin.PATH,
+            name: WebRoutesAdmin.NAME,
+            component: () => import(WebRoutesAdmin.FILE),
+            meta : {
+                title: '管理中心',
+                require: requireAdmin,
+            },
+            children: admin_routes
         },
         {
             path: WebRoutes.PATH,

@@ -81,3 +81,35 @@ export const api_base = (url: string, method: string, args: any) => new Promise<
         }
     })()
 })
+
+export const api_file_upload = (url: string, file: File, args : any) => new Promise<Response>( resolve => {
+    (async function(){
+        const auth_token = getAuthToken()
+        const formData = new FormData()
+        formData.append('file', file)
+        if (args) {
+            for (const key in args) {
+                if (args.hasOwnProperty(key)) {
+                    const element = args[key];
+                    formData.append(key, element)
+                }
+            }
+        }
+        try{
+            let data
+            if (!auth_token) {
+                data = await axios.post(url, formData)
+            } else {
+                data = await axios.post(url, formData, {
+                    headers: {
+                        'Authorization': getAuthToken()
+                    }
+                })
+            }
+            const response = data.data
+            resolve(response)
+        }catch(e){
+            resolve(Response.error(false, '网络错误'))
+        }
+    })()
+})

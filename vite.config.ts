@@ -18,5 +18,15 @@ export default defineConfig({
     alias: {
       '@': '/src',
     },
+  },
+  build : {
+    rollupOptions : {
+      output : {
+        assetFileNames: 'static/[name].[ext]',
+        chunkFileNames: 'js/[name].[hash].js',
+        entryFileNames: 'js/[name].[hash].js',
+        manualChunks: undefined,
+      },
+    },
   }
 })

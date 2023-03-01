@@ -7,6 +7,7 @@
             <el-menu
                 default-active="2"
                 class="el-menu-vertical-main"
+                :style="'position: fixed;'"
             >
                 <el-sub-menu v-for="route in routeList" :index="route.name" :key="route.name">
                     <template #title>
@@ -14,8 +15,8 @@
                         <span>{{ route.meta?.title }}</span>
                     </template>
                     <el-menu-item-group >
-                        <el-menu-item :index="route.name" :key="route.name">{{ route.meta?.title }}</el-menu-item>
-                        <el-menu-item v-for="child in route.children" :title="child.name" :key="child.name" :index="child.name">{{ child.meta?.title }}</el-menu-item>
+                        <el-menu-item v-if="route.children.length == 0" :index="route.name" :key="route.name" @click="router.push(route)">{{ route.meta?.title }}</el-menu-item>
+                        <el-menu-item v-for="child in route.children" :title="child.name" :key="child.name" :index="child.name" @click="router.push(child)">{{ child.meta?.title }}</el-menu-item>
                     </el-menu-item-group>
                 </el-sub-menu>
             </el-menu>
@@ -39,7 +40,7 @@
             <router-view></router-view>
           </div>
         </el-main>
-        <el-footer>Footer</el-footer>
+        <el-footer></el-footer>
       </el-container>
     </el-container>
 </div>
@@ -49,6 +50,9 @@
     import { ref, nextTick } from 'vue'
     import { web_routes } from '@/router/routes/web'
     import { Location } from '@element-plus/icons-vue'
+    import { useRouter } from 'vue-router';
+
+    const router = useRouter()
 
     // build a route list which has at most two levels
     const routes = web_routes.filter(route => route.name !== undefined)
