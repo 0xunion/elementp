@@ -25,7 +25,6 @@ import {
   ref,
   onMounted,
   nextTick,
-  defineEmits,
 } from "vue";
 import { VAceEditor } from "vue3-ace-editor";
 import ace from "ace-builds";

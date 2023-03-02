@@ -19,6 +19,7 @@ export const routes: RouteRecordRaw[] = [
         component: () => import(WebRoutesAdminGames.FILE),
         meta : {
             title: '比赛管理',
+            require : () => true
         }
     },
     {
@@ -27,6 +28,7 @@ export const routes: RouteRecordRaw[] = [
         component: () => import(WebRoutesAdminGameEditor.FILE),
         meta : {
             title: '比赛编辑',
+            require : () => true
         }
     },
 ]

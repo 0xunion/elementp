@@ -9,15 +9,6 @@
             <el-tag v-if="$store.getters['user/isAdmin']">管理员</el-tag>
         </el-col>
       </el-row>
-      <h3>链接</h3>
-      <ul>
-        <li><a href="https://github.com/0xunion" target="_blank">关于我们</a></li>
-        <li><a href="https://github.com/0xunion" target="_blank">关于我们</a></li>
-        <li><a href="https://github.com/0xunion" target="_blank">关于我们</a></li>
-        <li><a href="https://github.com/0xunion" target="_blank">关于我们</a></li>
-        <li><a href="https://github.com/0xunion" target="_blank">关于我们</a></li>
-        <br>
-      </ul>
     </div>
 </template>
 

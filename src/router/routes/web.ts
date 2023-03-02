@@ -3,16 +3,22 @@ enum WebRoutes {
     NAME = 'web',
 }
 
-export enum WebRoutesHome {
-    PATH = '/web/home',
-    NAME = 'web_home',
-    FILE = '@/views/web/home/home.vue',
-}
-
 export enum WebRoutesAdmin {
     PATH = '/web/admin',
     NAME = 'web_admin',
     FILE = '@/views/web/admin/index.vue',
+}
+
+export enum WebRoutesGames {
+    PATH = '/web/games',
+    NAME = 'web_games',
+    FILE = '@/views/web/games/index.vue',
+}
+
+export enum WebRoutesHome {
+    PATH = '/web/home',
+    NAME = 'web_home',
+    FILE = '@/views/web/home/home.vue',
 }
 
 import { RouteRecordRaw } from 'vue-router'
@@ -21,6 +27,10 @@ import store from '@/store'
 import {
     routes as admin_routes
 } from '@/router/routes/admin/admin'
+
+import {
+    routes as game_routes
+} from '@/router/routes/game/index'
 
 const requireAdmin = () => {
     return store.getters['user/isAdmin']
@@ -53,6 +63,16 @@ const routes: RouteRecordRaw = {
                 require: requireAdmin,
             },
             children: admin_routes
+        },
+        {
+            path: WebRoutesGames.PATH,
+            name: WebRoutesGames.NAME,
+            component: () => import(WebRoutesGames.FILE),
+            meta : {
+                title: '比赛现场',
+                require: notRequire,
+            },
+            children: game_routes
         },
         {
             path: WebRoutes.PATH,

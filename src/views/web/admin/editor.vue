@@ -309,7 +309,7 @@
                 break
             case 'defender':
                 data = await api_game_defender_template(form.value.id)
-                filename = '蓝队队员名单模板.xlsx'
+                filename = '防守方名单模板.xlsx'
                 break
             case 'judge':
                 data = await api_game_judge_template(form.value.id)
@@ -385,6 +385,11 @@
                 title: '提示',
                 message: '导入成功'
             })
+
+            const file_id = data.data.file_id
+            if (file_id != undefined && file_id != '000000000000000000000000') {
+                api_download_file(form.value.id, file_id, '导入结果.xlsx')
+            }
 
             load_game()
         } else {

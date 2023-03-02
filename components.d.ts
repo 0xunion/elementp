@@ -9,6 +9,7 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
+    Cardinfo: typeof import('./src/components/cardinfo.vue')['default']
     Codepad: typeof import('./src/components/codepad.vue')['default']
     ElAside: typeof import('element-plus/es')['ElAside']
     ElAutoResizer: typeof import('element-plus/es')['ElAutoResizer']
@@ -33,6 +34,7 @@ declare module '@vue/runtime-core' {
     ElMenuItem: typeof import('element-plus/es')['ElMenuItem']
     ElMenuItemGroup: typeof import('element-plus/es')['ElMenuItemGroup']
     ElOption: typeof import('element-plus/es')['ElOption']
+    ElPagination: typeof import('element-plus/es')['ElPagination']
     ElRadio: typeof import('element-plus/es')['ElRadio']
     ElRadioGroup: typeof import('element-plus/es')['ElRadioGroup']
     ElRow: typeof import('element-plus/es')['ElRow']
@@ -48,6 +50,7 @@ declare module '@vue/runtime-core' {
     ElTimeSelect: typeof import('element-plus/es')['ElTimeSelect']
     Games: typeof import('./src/components/games.vue')['default']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
+    Richeditor: typeof import('./src/components/richeditor.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }
