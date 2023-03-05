@@ -245,3 +245,7 @@ export const api_game_manage_rank_red_team = (game_id: string, page: number, pag
 export const api_game_manage_rank_blue_team = (game_id: string, page: number, page_size: number) => api_base('/api/custom/manage/rank/blue_team', 'GET', {
     game_id, page, page_size
 })
+
+export const api_game_attacker_statistics = (game_id: string) => api_base('/api/custom/attacker/statistics', 'GET', {
+    game_id
+})
