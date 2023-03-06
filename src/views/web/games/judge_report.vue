@@ -41,6 +41,32 @@
                         </el-tag>
                     </el-col>
                 </el-col>
+                <el-col :span="12">
+                    <h3>
+                        被攻击单位的资产范围
+                    </h3>
+                    <el-table
+                        :data="assets"
+                        border
+                        style="width: 100%"
+                    >
+                        <el-table-column
+                            prop="name"
+                            label="资产名称"
+                        >
+                        </el-table-column>
+                        <el-table-column
+                            prop="uri"
+                            label="资产访问标识"
+                        >
+                        </el-table-column>
+                        <el-table-column
+                            prop="industry"
+                            label="资产行业"
+                        >
+                        </el-table-column>
+                    </el-table>
+                </el-col>
             </el-row>
             <el-divider></el-divider>
             <el-row>
@@ -91,52 +117,113 @@
                                 ></el-table-column>
                             </el-table>
                         </div>
+                        <div class="report_comments_commit">
+                            <div class="report_comments_commit_input">
+                                <el-input
+                                    type="textarea"
+                                    :rows="4"
+                                    placeholder="请输入评论内容"
+                                    v-model="form.comment"
+                                ></el-input>
+                            </div>
+                            <el-button
+                                type="primary"
+                                @click="comment"
+                            >
+                                提交评论
+                            </el-button>
+                        </div>
                     </div>
                 </el-col>
-                <el-col :span="24" v-if="report.state == 2">
+                <el-col :span="24" v-if="report.state == 0">
                     <div class="report_actions">
                         <el-divider></el-divider>
                         <h3 class="report_actions_title">
                             操作
                         </h3>
                         <el-divider></el-divider>
-                        <el-button
-                            type="primary"
-                            @click="openAppealDialog"
-                        >
-                            申诉
-                        </el-button>
+                        <div class="report_actions_content">
+                            <el-form
+                                :model="form"
+                                label-width="100px"
+                            >
+                                <el-form-item label="裁判评分">
+                                    <el-input
+                                        v-model.number="form.score"
+                                        type="number"
+                                        min="0"
+                                        max="200000"
+                                        step="100"
+                                    ></el-input>
+                                </el-form-item>
+                                <el-form-item label="防守方扣分">
+                                    <el-input
+                                        v-model.number="form.defender_score"
+                                        type="number"
+                                        min="0"
+                                        max="200000"
+                                        step="100"
+                                    ></el-input>
+                                </el-form-item>
+                                <el-form-item>
+                                    <el-button
+                                        type="primary"
+                                        @click="accept"
+                                    >
+                                        通过
+                                    </el-button>
+                                    <el-button
+                                        type="danger"
+                                        @click="openRejectDialog"
+                                    >
+                                        拒绝
+                                    </el-button>
+                                </el-form-item>
+                            </el-form>
+                        </div>
                     </div>
                 </el-col>
             </el-row>
         </el-col>
     </el-row>
-    <el-dialog
-        v-model="appeal_dialog"
-    >
+    <el-dialog v-model="reject_dialog">
         <el-form
-            label-width="80px"
+            :model="form"
+            label-width="100px"
         >
-            <el-form-item label="申诉理由">
+            <el-form-item label="拒绝原因">
                 <el-input
                     type="textarea"
-                    v-model="form.reason"
-                    placeholder="请输入申诉理由"
+                    :rows="4"
+                    placeholder="请输入拒绝原因"
+                    v-model="form.comment"
                 ></el-input>
             </el-form-item>
+            <el-form-item>
+                <el-button
+                    type="primary"
+                    @click="reject"
+                >
+                    确定
+                </el-button>
+                <el-button
+                    @click="reject_dialog = false"
+                >
+                    取消
+                </el-button>
+            </el-form-item>
         </el-form>
-        <span slot="footer" class="dialog-footer">
-            <el-button @click="appeal_dialog = false">取 消</el-button>
-            <el-button type="primary" @click="appeal">提 交</el-button>
-        </span>
     </el-dialog>
 </template>
 
 <script setup lang="ts">
 import { 
+    api_game_manage_report_detail, 
     api_game_attacker_report_section, 
-    api_game_attacker_report_detail,
-    api_game_attacker_report_appeal
+    api_game_manage_assets_list ,
+    api_game_manage_report_comment,
+    api_game_manage_report_accept,
+    api_game_manage_report_reject
 } from '@/api/game';
 import { ElNotification } from 'element-plus';
 import { isSuccess } from '@/api/utils';
@@ -148,6 +235,24 @@ const router = useRouter()
 
 const game_id = ref('')
 const report_id = ref('')
+
+class Report {
+    id: string = ''
+    name: string = ''
+    content: string = ''
+    uri: string = ''
+    level: number = 0
+    state: number = 0
+    isolation_break: number = 0
+    vuln_type: number = 0
+    score: number = 0
+    game_id: string = ''
+    attack_team_id: string = ''
+    defender_id: string = ''
+    attack_type: number = 0
+    attack_team_name: string = ''
+    defender_name: string = ''
+}
 
 class Section {
     name: string = ''
@@ -175,11 +280,13 @@ const report = ref({} as any)
 const comments = ref([] as any[])
 
 const form = ref({
-    reason : ''
+    score: 0,
+    defender_score: 0,
+    comment : ''
 })
 
 const get_report = async () => {
-    const data = await api_game_attacker_report_detail(game_id.value, report_id.value)
+    const data = await api_game_manage_report_detail(game_id.value, report_id.value)
     if (isSuccess(data)) {
         report.value = data.data.report
         comments.value = [{
@@ -199,25 +306,70 @@ const get_report = async () => {
     }
 }
 
-const appeal_dialog = ref(false)
+const reject_dialog = ref(false)
 
-const openAppealDialog = () => {
-    appeal_dialog.value = true
-}
-
-const appeal = async () => {
-    const data = await api_game_attacker_report_appeal(game_id.value, report_id.value, form.value.reason)
+const reject = async () => {
+    const data = await api_game_manage_report_reject(game_id.value, report_id.value, form.value.comment)
     if (isSuccess(data)) {
         ElNotification({
-            title: '申诉成功',
-            message: '申诉成功，等待裁判处理',
+            title: '已驳回',
+            message: '已驳回',
             type: 'success'
         })
-        appeal_dialog.value = false
-        await get_report()
+        router.back()
     } else {
         ElNotification({
-            title: '申诉失败',
+            title: '驳回失败',
+            message: data.message,
+            type: 'error'
+        })
+    }
+}
+
+const openRejectDialog = () => {
+    reject_dialog.value = true
+}
+
+const assets = ref([] as any[])
+
+const get_assets = async () => {
+    const data = await api_game_manage_assets_list(game_id.value, report.value.defender_id)
+    if (isSuccess(data)) {
+        assets.value = data.data.assets
+    } else {
+        ElNotification({
+            title: '获取资产失败',
+            message: data.message,
+            type: 'error'
+        })
+    }
+}
+
+const accept = async () => {
+    const data = await api_game_manage_report_accept(game_id.value, report_id.value, form.value.score, form.value.defender_score)
+    if (isSuccess(data)) {
+        ElNotification({
+            title: '已通过',
+            message: '已通过',
+            type: 'success'
+        })
+        router.back()
+    } else {
+        ElNotification({
+            title: '通过失败',
+            message: data.message,
+            type: 'error'
+        })
+    }
+}
+
+const comment = async () => {
+    const data = await api_game_manage_report_comment(game_id.value, report_id.value, form.value.comment)
+    if (isSuccess(data)) {
+        get_report()
+    } else {
+        ElNotification({
+            title: '评论失败',
             message: data.message,
             type: 'error'
         })
@@ -234,6 +386,7 @@ onMounted(async () => {
     } else {
         get_sections()
         await get_report()
+        get_assets()
     }
 })
 

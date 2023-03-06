@@ -75,7 +75,7 @@
         api_game_manage_rank_blue_team,
     } from '@/api/game'
 
-    import { WebRoutesGamesList } from '@/router/routes/game'
+    import { WebRoutesGamesJudgeReports, WebRoutesGamesList } from '@/router/routes/game'
     import { isSuccess } from '@/api/utils'
     import { ElNotification } from 'element-plus'
 
@@ -113,7 +113,9 @@
     }
 
     const toReports = () => {
-        
+        router.push({
+            path : WebRoutesGamesJudgeReports.PATH.replace(':id', game_id.value)
+        })
     }
 
     const toAttacks = () => {

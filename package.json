@@ -30,7 +30,8 @@
     "vue3-ace-editor": "^2.2.2",
     "vue3-echarts": "^1.1.0",
     "vuex": "^4.1.0",
-    "vuex-module-decorators": "^2.0.0"
+    "vuex-module-decorators": "^2.0.0",
+    "xss": "^1.0.14"
   },
   "devDependencies": {
     "@types/node": "^18.14.2",

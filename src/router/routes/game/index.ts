@@ -48,6 +48,24 @@ export enum WebRoutesGamesAttackDetail {
     FILE = '@/views/web/games/attack_detail.vue',
 }
 
+export enum WebRoutesGamesJudgeReports {
+    PATH = '/web/games/judge/reports/:id?',
+    NAME = 'web_games_judge_reports',
+    FILE = '@/views/web/games/judge_reports.vue',
+}
+
+export enum WebRoutesGamesJudgeReportDetail {
+    PATH = '/web/games/judge/report/detail/:game_id/:id?',
+    NAME = 'web_games_judge_report_detail',
+    FILE = '@/views/web/games/judge_report.vue',
+}
+
+export enum WebRoutesGamesAttackReportDetail {
+    PATH = '/web/games/attack/report/detail/:game_id/:id?',
+    NAME = 'web_games_attack_report_detail',
+    FILE = '@/views/web/games/report_detail.vue',
+}
+
 export const routes: RouteRecordRaw[] = [
     {
         path: WebRoutesGamesList.PATH,
@@ -118,6 +136,33 @@ export const routes: RouteRecordRaw[] = [
         component: () => import(WebRoutesGamesAttackDetail.FILE),
         meta : {
             title: '攻击详情',
+            require : () => false
+        }
+    },
+    {
+        path: WebRoutesGamesJudgeReports.PATH,
+        name: WebRoutesGamesJudgeReports.NAME,
+        component: () => import(WebRoutesGamesJudgeReports.FILE),
+        meta : {
+            title: '裁判报告',
+            require : () => false
+        }
+    },
+    {
+        path: WebRoutesGamesJudgeReportDetail.PATH,
+        name: WebRoutesGamesJudgeReportDetail.NAME,
+        component: () => import(WebRoutesGamesJudgeReportDetail.FILE),
+        meta : {
+            title: '裁判报告详情',
+            require : () => false
+        }
+    },
+    {
+        path: WebRoutesGamesAttackReportDetail.PATH,
+        name: WebRoutesGamesAttackReportDetail.NAME,
+        component: () => import(WebRoutesGamesAttackReportDetail.FILE),
+        meta : {
+            title: '攻击报告详情',
             require : () => false
         }
     },

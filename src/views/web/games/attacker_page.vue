@@ -56,7 +56,7 @@
                         </el-table-column>
                         <el-table-column label="操作">
                             <template #default="scope">
-                                <el-button type="text" :disabled="scope.row.state != 2">申诉</el-button>
+                                <el-button type="text" @click="toReportDetail(scope.row.id)">详情</el-button>
                                 <el-button type="text" @click="deleteReport(scope.row.id)">删除</el-button>
                             </template>
                         </el-table-column>
@@ -113,7 +113,7 @@
 
 <script lang="ts" setup>
     import { useRouter } from 'vue-router'
-    import { WebRoutesGamesReportEditor, WebRoutesGamesAttackEditor, WebRoutesGamesList } from '@/router/routes/game'
+    import { WebRoutesGamesReportEditor, WebRoutesGamesAttackEditor, WebRoutesGamesList, WebRoutesGamesAttackReportDetail } from '@/router/routes/game'
     import { ref, onMounted } from 'vue'
 
     import { 
@@ -159,6 +159,11 @@
     const toNewAttack = () => {
         router.push({
             path : WebRoutesGamesAttackEditor.PATH.replace(':game_id', game_id.value).replace(':id', '')
+        })
+    }
+    const toReportDetail = (id: string) => {
+        router.push({
+            path : WebRoutesGamesAttackReportDetail.PATH.replace(':game_id', game_id.value).replace(':id', id)
         })
     }
 

@@ -140,32 +140,6 @@ export const api_game_attacker_report_delete = (game_id: string, report_id: stri
     game_id, report_id
 })
 
-/**
- * var axios = require('axios');
-var qs = require('qs');
-var data = qs.stringify({
-    
-});
-var config = {
-   method: 'get',
-   url: 'http://union.exercise.back.srmxy.cn/api/custom/attacker/attack/list?game_id=<game_id>&page=<page>&page_size=<page_size>',
-   headers: { 
-      'Authorization': '{{token}}', 
-      'User-Agent': 'Apifox/1.0.0 (https://www.apifox.cn)'
-   },
-   data : data
-};
-
-axios(config)
-.then(function (response) {
-   console.log(JSON.stringify(response.data));
-})
-.catch(function (error) {
-   console.log(error);
-});
-
- */
-
 export const api_game_attacker_attack_list = (game_id: string, page: number, page_size: number) => api_base('/api/custom/attacker/attack/list', 'GET', {
     game_id, page, page_size
 })
@@ -248,4 +222,42 @@ export const api_game_manage_rank_blue_team = (game_id: string, page: number, pa
 
 export const api_game_attacker_statistics = (game_id: string) => api_base('/api/custom/attacker/statistics', 'GET', {
     game_id
+})
+
+export const api_game_manage_report_list = (game_id: string, page: number, page_size: number, order: number) => api_base('/api/custom/manage/report/list', 'GET', {
+    game_id, page, page_size, order
+})
+
+export const api_game_manage_report_detail = (game_id: string, report_id: string) => api_base('/api/custom/manage/report/detail', 'GET', {
+    game_id, report_id
+})
+
+export const api_game_manage_assets_list = (game_id: string, defender_id: string) => api_base('/api/custom/manage/assets/list', 'GET', {
+    game_id, defender_id
+})
+
+
+export const api_game_manage_report_comment = (game_id: string, report_id: string, comment: string) => api_base('/api/custom/manage/report/comment', 'POST', {
+    game_id, report_id, comment
+})
+
+
+export const api_game_manage_attack_accept = (game_id: string, attack_id: string) => api_base('/api/custom/manage/attack/accept', 'POST', {
+    game_id, attack_id
+})
+
+export const api_game_manage_attack_reject = (game_id: string, attack_id: string, comment: string) => api_base('/api/custom/manage/attack/reject', 'POST', {
+    game_id, attack_id, comment
+})
+
+export const api_game_manage_report_accept = (game_id: string, report_id: string, score: number, defender_score: number) => api_base('/api/custom/manage/report/accept', 'POST', {
+    game_id, report_id, score, defender_score
+})
+
+export const api_game_manage_report_reject = (game_id: string, report_id: string, comment: string) => api_base('/api/custom/manage/report/reject', 'POST', {
+    game_id, report_id, comment
+})
+
+export const api_game_attacker_report_appeal = (game_id: string, report_id: string, reason: string) => api_base('/api/custom/attacker/report/appeal', 'POST', {
+    game_id, report_id, reason
 })
