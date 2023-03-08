@@ -5,9 +5,14 @@ import router from './router/index'
 import axios from 'axios'
 import 'element-plus/dist/index.css'
 import store from './store'
+import {
+    registerTheme
+} from './init'
 
 import { api_get_user_info } from '@/api/auth'
 import { isSuccess } from '@/api/utils'
+
+registerTheme()
 
 const app=createApp(App)
 

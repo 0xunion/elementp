@@ -22,7 +22,7 @@ export default {
             default: '标题'
         },
         content: {
-            type: String,
+            type: [String, Number],
             default: '内容'
         },
         type : {

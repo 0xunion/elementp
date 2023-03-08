@@ -54,6 +54,8 @@ declare module '@vue/runtime-core' {
     ElTimeSelect: typeof import('element-plus/es')['ElTimeSelect']
     Games: typeof import('./src/components/games.vue')['default']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
+    Linechart: typeof import('./src/components/linechart.vue')['default']
+    Piechart: typeof import('./src/components/piechart.vue')['default']
     Richeditor: typeof import('./src/components/richeditor.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

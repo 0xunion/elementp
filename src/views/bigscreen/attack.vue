@@ -27,7 +27,9 @@
                 </div>
                 <div class="attack_page_left_map">
                     <div class="attack_page_left_map_container">
-                        <VueEcharts :option="map_options" style="height: 100%; width: 100%;" ref="map"></VueEcharts>
+                        <div class="attack_page_left_map_container_inner">
+                            <VueEcharts :option="map_options" style="height: 100%; width: 100%;" ref="map"></VueEcharts>
+                        </div>
                     </div>
                 </div>
                 <div class="attack_page_left_bottom">
@@ -82,13 +84,41 @@
             </div>
             <div class="attack_page_right">
                 <div class="attack_page_right_red_rank attack_page_right_item">
-                    <!-- 30%height -->
+                    <div class="attack_page_left_bottom_item_title">
+                        红队排名
+                    </div>
+                    <ul>
+                        <li v-for="red in statistics.red_teams">
+                            <div class="attack_page_right_red_rank_item">
+                                <div class="attack_page_right_red_rank_item_name">
+                                    {{ red.name }}
+                                </div>
+                                <div class="attack_page_right_red_rank_item_score">
+                                    {{ red.score }}
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
                 </div>
                 <div class="attack_page_right_blue_rank attack_page_right_item">
-                    <!-- 30%height -->
+                    <div class="attack_page_left_bottom_item_title">
+                        蓝队排名
+                    </div>
+                    <ul>
+                        <li v-for="blue in statistics.blue_teams">
+                            <div class="attack_page_right_red_rank_item">
+                                <div class="attack_page_right_red_rank_item_name">
+                                    {{ blue.name }}
+                                </div>
+                                <div class="attack_page_right_red_rank_item_score">
+                                    {{ blue.score }}
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
                 </div>
                 <div class="attack_page_right_attack_types attack_page_right_item">
-                    <!-- 40%height -->
+                    
                 </div>
             </div>
         </div>
@@ -97,7 +127,7 @@
 
 <script setup lang="ts">
     import textbox from './components/textbox.vue';
-    import { ref, onMounted, computed, reactive } from 'vue'
+    import { ref, onMounted, computed, reactive, onBeforeUnmount } from 'vue'
     import { api_game_attacker_statistics, api_game_attacker_report_section } from '@/api/game'
     import { useRouter } from 'vue-router';
     import { isSuccess } from '@/api/utils';
@@ -131,7 +161,9 @@
         dangers: 0,
         isolation: 0,
         attack_types: [] as Gimmack[],
-        industry: [] as Industry[]
+        industry: [] as Industry[],
+        red_teams : [] as any[],
+        blue_teams : [] as any[],
     })
 
     const total_industry = computed(() => {
@@ -160,6 +192,8 @@
 
     const game_id = ref('')
 
+    const red_team_map_choice = ref({} as any) // team_id => geojson_feature_index
+    
     const get_statistics = async () => {
         const data = await api_game_attacker_statistics(game_id.value)
         if (isSuccess(data)) {
@@ -170,6 +204,51 @@
             statistics.value.industry = data.data.statistics.attack_types.industry.sort((a: Industry, b: Industry) => {
                 return b.count - a.count
             })
+
+            statistics.value.attacker = data.data.statistics.rank.red_team.length
+            statistics.value.defender = data.data.statistics.rank.blue_team.length
+
+            statistics.value.red_teams = data.data.statistics.rank.red_team
+            statistics.value.blue_teams = data.data.statistics.rank.blue_team
+
+            // refresh map options
+            const redteams = data.data.statistics.rank.red_team
+
+            redteams.forEach((item: any) => {
+                // check if team_id in red_team_map_choice
+                if (red_team_map_choice.value[item.id] === undefined) {
+                    // if not, choose a random index, and ensure it is not in red_team_map_choice
+                    let index = Math.floor(Math.random() * geoJson.features.length)
+                    while (red_team_map_choice.value[index] !== undefined) {
+                        index = Math.floor(Math.random() * geoJson.features.length)
+                    }
+                    red_team_map_choice.value[item.id] = index
+                }
+
+                // set height
+                geoJson.features[red_team_map_choice.value[item.id]].properties.height = item.score + 10
+                // set name
+
+                // check if name is already set
+                if (geoJson.features[red_team_map_choice.value[item.id]].properties.name.indexOf('-') === -1) {
+                    geoJson.features[red_team_map_choice.value[item.id]].properties.name += '-' + item.name
+                }
+            })
+
+            // set data
+            map_options.series[0].data = geoJson.features.map(function (feature: any) {
+                return {
+                    name: feature.properties.name,
+                    value: feature.properties.height,
+                    height: Math.min(
+                        40,
+                        feature.properties.height / get_geojson_max_height() * 40
+                    )
+                };
+            })
+
+            // set visualMap
+            map_options.visualMap.max = get_geojson_max_height()
         }
     }
 
@@ -180,84 +259,101 @@
         }
     }
 
-    const map_options : EChartsOption = {
-        title: {
-            text: '攻击地图',
-            left: 'center'
-        },
-        series: [
-        {
-          type: 'map3D',
-          map: 'random_map',
-          shading: 'realistic',
-          realisticMaterial: {
-            roughness: 0.6,
-            textureTiling: 20
-          },
-          postEffect: {
-            enable: true,
-            bloom: {
-              enable: false
-            },
-            SSAO: {
-              enable: true,
-              quality: 'medium',
-              radius: 10,
-              intensity: 1.2
-            },
-            depthOfField: {
-              enable: false,
-              focalRange: 5,
-              fstop: 1,
-              blurRadius: 6
+    const get_geojson_max_height = ():number => {
+        let max = 0
+        geoJson.features.forEach((item: any) => {
+            if (item.properties.height > max) {
+                max = item.properties.height
             }
-          },
-          groundPlane: {
-            show: true,
-            color: 'rgb(1,29,47)'
-          },
-        //   light: {
-        //     main: {
-        //       intensity: 6,
-        //       shadow: true,
-        //       shadowQuality: 'high',
-        //       alpha: 30
-        //     },
-        //     ambient: {
-        //       intensity: 0
-        //     },
-        //     ambientCubemap: {
-        //       exposure: 2,
-        //       diffuseIntensity: 1,
-        //       specularIntensity: 1
-        //     }
-        //   },
-          viewControl: {
-            minBeta: -360,
-            maxBeta: 360,
-            autoRotate: true,
-            autoRotateSpeed: 5
-          },
-          itemStyle: {
-            areaColor: '#666'
-          },
-          label: {
-            color: 'white'
-          },
-          silent: true,
-          instancing: true,
-          boxWidth: 200,
-          boxHeight: 1,
-          data: geoJson.features.map(function (feature: any) {
-            return {
-                name: feature.properties.name,
-                value: Math.max(Math.sqrt(feature.properties.height), 0.1),
-                height: Math.max(Math.sqrt(feature.properties.height), 0.1)
-            };
-          })
-        }
-      ]
+        })
+
+        return max
     }
+
+    const map_options : EChartsOption = {
+        visualMap: {
+            show: true,
+            min: 0.4,
+            max: get_geojson_max_height(),
+            inRange: {
+            color: [
+                '#d7302799',
+                '#31369599',
+              ]
+            },
+          },
+        series: [
+          {
+            type: 'map3D',
+            map: 'random_map',
+            shading: 'realistic',
+            realisticMaterial: {
+                roughness: 0.6,
+                textureTiling: 20
+            },
+            postEffect: {
+                enable: true,
+                bloom: {
+                enable: false
+                },
+                SSAO: {
+                enable: true,
+                quality: 'medium',
+                radius: 10,
+                intensity: 1.2
+                },
+                depthOfField: {
+                enable: false,
+                focalRange: 5,
+                fstop: 1,
+                blurRadius: 6
+                }
+            },
+            viewControl: {
+                minBeta: -360,
+                maxBeta: 360 * 1000000,
+                autoRotate: true,
+                autoRotateSpeed: 5,
+            },
+            label: {
+                show: true,
+                distance: 10,
+                formatter: function (params: any) {
+                    return params.name
+                },
+            },
+            itemStyle: {
+                color: '#313695',
+                opacity: 0.6,
+                borderWidth: 0.8,
+                borderColor: '#31369599'
+            },
+            silent: true,
+            instancing: true,
+            boxHeight: 20,
+            data: geoJson.features.map(function (feature: any) {
+                return {
+                    name: feature.properties.name,
+                    value: feature.properties.height,
+                    height: Math.min(
+                        40,
+                        feature.properties.height / get_geojson_max_height() * 40
+                    )
+                };
+            })
+          },
+        ],
+        tooltip: {
+            show: true,
+            formatter: function (params: any) {
+                return params.name + ' : ' + params.value
+            }
+        } 
+    }
+
+    const map = ref(null as any)
+
+    let timer: any = null
 
     onMounted(async () => {
         const id = router.currentRoute.value.params.id
@@ -265,12 +361,115 @@
         if(gid != '') {
             game_id.value = gid
             await get_attack_types()
-            get_statistics()
+            await get_statistics()
+
+            timer = setInterval(async () => {
+                await get_statistics()
+                map.value.refreshOption(map_options)
+            }, 70000)
+            
+            map.value.refreshOption(map_options)
         }
+    })
+
+    onBeforeUnmount(() => {
+        clearInterval(timer)
     })
 </script>
 
 <style lang="less">
+    /**
+    <div class="attack_page_right">
+                <div class="attack_page_right_red_rank attack_page_right_item">
+                    <div class="attack_page_left_bottom_item_title">
+                        红队排名
+                    </div>
+                    <ul>
+                        <li v-for="red in statistics.red_teams">
+                            <div class="attack_page_right_red_rank_item">
+                                <div class="attack_page_right_red_rank_item_name">
+                                    {{ red.name }}
+                                </div>
+                                <div class="attack_page_right_red_rank_item_score">
+                                    {{ red.score }}
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="attack_page_right_blue_rank attack_page_right_item">
+                    <div class="attack_page_left_bottom_item_title">
+                        蓝队排名
+                    </div>
+                    <ul>
+                        <li v-for="blue in statistics.blue_teams">
+                            <div class="attack_page_right_red_rank_item">
+                                <div class="attack_page_right_red_rank_item_name">
+                                    {{ blue.name }}
+                                </div>
+                                <div class="attack_page_right_red_rank_item_score">
+                                    {{ blue.score }}
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <div class="attack_page_right_attack_types attack_page_right_item">
+                    
+                </div>
+            </div> */
+    .attack_page_right {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+
+        ul {
+            list-style: none;
+            padding-left: 40px;
+            padding-right: 40px;
+            margin: 0;
+
+            li {
+                width: 100%;
+                height: 40px;
+                display: flex;
+                flex-direction: row;
+                justify-content: flex-start;
+                align-items: center;
+                padding-left: 20px;
+                padding-right: 20px;
+                font-size: 16px;
+                color: #fff;
+                font-weight: 700;
+
+                &:nth-child(odd) {
+                    background-color: rgba(255, 255, 255, 0.1);
+                }
+
+                .attack_page_right_red_rank_item {
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: space-between;
+                    align-items: center;
+                }
+
+                .attack_page_right_red_rank_item_name {
+                    width: 50%;
+                    height: 100%;
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: flex-start;
+                    align-items: center;
+                }
+            }
+        }
+    }
+
     .attack_page_industry {
         width: 100%;
         height: 25%;
@@ -406,6 +605,7 @@
         align-items: center;
         padding: 10px;
     }
+
     .attack_page_left_map {
         margin: 20px;
         width: 100%;
@@ -422,6 +622,11 @@
         height: 100%;
         background-image: url('./assets/map.png');
         background-size: 100% 100%;
+    }
+    .attack_page_left_map_container_inner {
+        width: calc(100% - 40px);
+        height: calc(100% - 40px);
+        margin: 20px;
     }
     .attack_page_left_bottom {
         width: 100%;

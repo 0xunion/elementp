@@ -9,112 +9,109 @@
 
 import random
 import json
+import math
 
-def generate_random_building(road_id, road_length, road_width):
-    '''
-        generate random building
-    '''
-    building_id = 0
-    building_list = []
-    while road_length > 0:
-        building_length = 80
-        building_width = 80
-        building_height = random.randint(1, 10)
-        building_id += 1
-        building = {
+map_width = 1000
+map_lenth = 1000
+road_width = 40
+building_width = 80
+building_height = 0
+building_lenth = 80
+
+class Rect:
+    x: int
+    y: int
+    width: int
+    length: int
+    height: int
+
+    def __init__(self, x, y, width, length):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.length = length
+
+    def corss(self, rect):
+        if self.x > rect.x + rect.width:
+            return False
+        if self.x + self.width < rect.x:
+            return False
+        if self.y > rect.y + rect.length:
+            return False
+        if self.y + self.length < rect.y:
+            return False
+        return True
+
+map = []
+
+def generate_random_map():
+    current_x = 0
+    current_y = 0
+
+    while True:
+        if current_y > map_lenth:
+            break
+
+        current_x = 0
+        while True:
+            if current_x > map_width:
+                break
+
+            random_choice = random.randint(0, 1)
+            tmp_building_width = 0
+            if random_choice == 1:
+                if (current_x + building_width * 2 + road_width) < map_lenth:
+                    tmp_building_width = building_width * 2 + road_width
+            
+            if tmp_building_width == 0:
+                tmp_building_width = building_width
+                
+            building = Rect(current_x, current_y, tmp_building_width, building_lenth)
+            building_height = random.randint(1, 10000) * 10
+            building.height = building_height
+            map.append(building)
+
+            current_x += road_width + tmp_building_width
+        
+        current_y += road_width + building_lenth
+
+def generate_geojson():
+    geojson = {
+        "features": []
+    }
+
+    for building in map:
+        feature = {
             "type": "Feature",
             "properties": {
-                "id": building_id,
-                "road_id": road_id,
-                "height": building_height
+                "height": 0,
+                "name" : f'{len(geojson["features"])}',
+                "level": 1,
             },
             "geometry": {
                 "type": "Polygon",
                 "coordinates": [
                     [
-                        [
-                            road_length,
-                            road_width
-                        ],
-                        [
-                            road_length,
-                            road_width + building_width
-                        ],
-                        [
-                            road_length - building_length,
-                            road_width + building_width
-                        ],
-                        [
-                            road_length - building_length,
-                            road_width
-                        ],
-                        [
-                            road_length,
-                            road_width
-                        ]
+                        [building.x, building.y],
+                        [building.x + building.width, building.y],
+                        [building.x + building.width, building.y + building.length],
+                        [building.x, building.y + building.length],
+                        [building.x, building.y]
                     ]
                 ]
             }
         }
-        building_list.append(building)
-        road_length -= building_length
-    return building_list
 
-def generate_random_road(road_id, road_length, road_width):
-    '''
-        generate random road
-    '''
-    road = {
-        "type": "Feature",
-        "properties": {
-            "id": road_id,
-            "length": road_length,
-            "width": road_width
-        },
-        "geometry": {
-            "type": "LineString",
-            "coordinates": [
-                [
-                    0,
-                    road_width
-                ],
-                [
-                    road_length,
-                    road_width
-                ]
-            ]
-        }
-    }
-    return road
+        geojson["features"].append(feature)
 
-def generate_random_map():
-    '''
-        generate random map
-    '''
-    road_id = 0
-    road_width = 40
-    road_length = 1000
-    road_list = []
-    building_list = []
-    while road_width < 1000:
-        road_id += 1
-        road = generate_random_road(road_id, road_length, road_width)
-        road_list.append(road)
-        building_list += generate_random_building(road_id, road_length, road_width)
-        road_width += 40
-    return road_list, building_list
+    return geojson
 
-def save_to_geojson(road_list, building_list):
-    '''
-        save to geojson
-    '''
-    geojson = {
-        "type": "FeatureCollection",
-        "features": road_list + building_list
-    }
-    with open("scripts/random_map.geojson", "w") as f:
+def main():
+    generate_random_map()
+    geojson = generate_geojson()
+
+    with open('scripts/random_map.geojson', 'w') as f:
         json.dump(geojson, f)
 
-if __name__ == "__main__":
-    road_list, building_list = generate_random_map()
-    save_to_geojson(road_list, building_list)
+if __name__ == '__main__':
+    main()

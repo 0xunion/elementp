@@ -59,6 +59,11 @@
                     <el-form-item label="URI">
                         <el-input v-model="form.uri" class="m-2" placeholder="请输入URI"></el-input>
                     </el-form-item>
+                    <el-form-item label="导入word">
+                        <el-button @click="importWord">
+                            选择文件（仅支持docx）
+                        </el-button>
+                    </el-form-item>
                 </el-form>
             </el-col>
             <el-col :span="24">
@@ -75,7 +80,15 @@
 
 <script setup lang="ts">
     import RichEditor from '@/components/richeditor.vue'
-    import { api_game_attacker_report_section, api_game_attacker_report_commit, api_game_attacker_list_defender } from '@/api/game';
+    import { 
+        api_game_attacker_report_section, 
+        api_game_attacker_report_commit, 
+        api_game_attacker_list_defender,
+    } from '@/api/game';
+    import {
+        api_upload_image,
+        api_download_image_url
+    } from '@/api/file'
     import { useRouter } from 'vue-router';
     import { ref, onMounted, computed } from 'vue';
     import { isSuccess } from '@/api/utils';
@@ -162,7 +175,51 @@
                     path: WebRoutesGamesAttackerPage.PATH.replace(':id', game_id.value)
                 })
             }, 500)
+        } else {
+            ElNotification.error({
+                title: '提示',
+                message: '提交失败'
+            })
         }
+    }
+
+    const importWord = () => {
+        const input = document.createElement('input')
+        input.type = 'file'
+        input.accept = 'application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        input.onchange = async (e) => {
+            const file = (e.target as HTMLInputElement).files?.[0]
+            if (!file) {
+                return
+            }
+
+            const result = await mammoth.convertToHtml({ arrayBuffer: await file.arrayBuffer() })
+            // build this result to a new DOM
+            const div = document.createElement('div')
+            div.innerHTML = result.value
+            // get all images
+            const images = div.querySelectorAll('img')
+            for (let i = 0; i < images.length; i++) {
+                const img = images[i]
+                const src = img.src
+                if (src) {
+                    const blob = await fetch(src).then(r => r.blob())
+                    const file = new File([blob], 'image.png', { type: 'image/png' })
+                    const data = await api_upload_image(file)
+                    if (isSuccess(data)) {
+                        const url = api_download_image_url(data.data)
+                        img.src = url
+                    } else {
+                        img.src = ''
+                    }
+                } else {
+                    img.src = ''
+                }
+            }
+
+            form.value.content = div.innerHTML
+        }
+        input.click()
     }
 
     onMounted(() => {
@@ -175,6 +232,11 @@
             })
             return
         }
+
+        // import https://cdn.jsdelivr.net/npm/mammoth@1.4.8/mammoth.browser.min.js
+        const script = document.createElement('script') 
+        script.src = 'https://cdn.jsdelivr.net/npm/mammoth@1.4.8/mammoth.browser.min.js'
+        document.body.appendChild(script)
 
         const rid = router.currentRoute.value.params.report_id as string
         if (rid) {

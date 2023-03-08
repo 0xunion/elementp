@@ -66,6 +66,12 @@ export enum WebRoutesGamesAttackReportDetail {
     FILE = '@/views/web/games/report_detail.vue',
 }
 
+export enum WebRoutesGamesManagerAnalysis {
+    PATH = '/web/games/manager/analysis/:id?',
+    NAME = 'web_games_manager_analysis',
+    FILE = '@/views/web/games/analysis.vue',
+}
+
 export const routes: RouteRecordRaw[] = [
     {
         path: WebRoutesGamesList.PATH,
@@ -166,4 +172,13 @@ export const routes: RouteRecordRaw[] = [
             require : () => false
         }
     },
+    {
+        path: WebRoutesGamesManagerAnalysis.PATH,
+        name: WebRoutesGamesManagerAnalysis.NAME,
+        component: () => import(WebRoutesGamesManagerAnalysis.FILE),
+        meta : {
+            title: '比赛分析',
+            require : () => false
+        }
+    }
 ]

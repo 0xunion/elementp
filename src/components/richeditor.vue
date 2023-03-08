@@ -20,18 +20,55 @@
 
     import { onBeforeUnmount, ref, shallowRef, onMounted, watch } from 'vue'
     import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
+    import {
+      ElNotification,
+    } from 'element-plus'
+
+    import {
+      api_upload_image,
+      api_download_image_url
+    } from '@/api/file'
+    import { isSuccess } from '@/api/utils';
+
+
     // 编辑器实例，必须用 shallowRef
     const editorRef = shallowRef()
 
     // 内容 HTML
     const valueHtml = ref('')
 
-    const toolbarConfig = {}
-    const editorConfig = { placeholder: '请输入内容...' }
+    type InsertFnType = (url: string, alt: string, href: string) => void
+
+    const toolbarConfig = {
+    }
+    const editorConfig = { 
+      placeholder: '请输入内容...',
+      MENU_CONF : {
+        uploadImage : {
+          async customUpload(file: File, insertFn: InsertFnType) {
+            const data = await api_upload_image(file)
+            if (isSuccess(data)) {
+              const hash = data.data
+              const url = api_download_image_url(hash)
+              insertFn(url, '', '')
+            } else {
+              ElNotification.error({
+                title: '上传失败',
+                message: data.message
+              })
+            }
+          }
+        }
+      }
+    }
 
     // 定义v-model
     const props = defineProps({
       value: {
+        type: String,
+        default: ''
+      },
+      game_id: {
         type: String,
         default: ''
       }

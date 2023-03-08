@@ -8,28 +8,28 @@
             <h1>概况</h1>
         </el-col>
         <el-col :span="6" style="padding: 5px;">
-            <CardInfo :title="'当前报告数量'" :content="'2'" />
+            <CardInfo :title="'当前报告数量'" :content="reports_total" />
         </el-col>
         <el-col :span="6" style="padding: 5px;">
-            <CardInfo :title="'未审核报告数量'" :content="'1'" />
+            <CardInfo :title="'未审核报告数量'" :content="reports_unverified" />
         </el-col>
         <el-col :span="6" style="padding: 5px;">
-            <CardInfo :title="'当前攻击请求数量'" :content="'2'" />
+            <CardInfo :title="'当前攻击请求数量'" :content="attack_total" />
         </el-col>
         <el-col :span="6" style="padding: 5px;">
-            <CardInfo :title="'未审核攻击数量'" :content="'2'" />
+            <CardInfo :title="'未审核攻击数量'" :content="attack_unverified" />
         </el-col>
         <el-col :span="6" style="padding: 5px;">
-            <CardInfo :title="'有效报告数'" :content="'1'" />
+            <CardInfo :title="'有效报告数'" :content="reports_accepted" />
         </el-col>
         <el-col :span="6" style="padding: 5px;">
-            <CardInfo :title="'允许高危攻击数量'" :content="'0'" />
+            <CardInfo :title="'允许高危攻击数量'" :content="attack_accpeted" />
         </el-col>
         <el-col :span="6" style="padding: 5px;">
-            <CardInfo :title="'参赛队伍数量'" :content="'2'" />
+            <CardInfo :title="'参赛队伍数量'" :content="redteam_total" />
         </el-col>
         <el-col :span="6" style="padding: 5px;">
-            <CardInfo :title="'参赛防守方数量'" :content="'3'" />
+            <CardInfo :title="'参赛防守方数量'" :content="blueteam_total" />
         </el-col>
         <el-col :span="24">
             <el-divider></el-divider>
@@ -67,12 +67,13 @@
 <script setup lang="ts">
     import CardInfo from '@/components/cardinfo.vue'
 
-    import { onMounted, ref } from 'vue'
+    import { onMounted, ref, computed } from 'vue'
     import { useRouter } from 'vue-router'
 
     import {
         api_game_manage_rank_red_team,
         api_game_manage_rank_blue_team,
+        api_game_manage_report_list
     } from '@/api/game'
 
     import { WebRoutesGamesJudgeReports, WebRoutesGamesList } from '@/router/routes/game'
@@ -83,6 +84,8 @@
 
     const red_team_rank = ref([])
     const blue_team_rank = ref([])
+
+    const reports = ref([] as any[])
 
     const game_id = ref('')
 
@@ -112,6 +115,55 @@
         }
     }
 
+    const get_reports = async () => {
+        const data = await api_game_manage_report_list(game_id.value, 1, 2000, 1)
+        if (isSuccess(data)) {
+            reports.value = data.data.reports
+        } else {
+            ElNotification({
+                title: '获取报告列表失败',
+                message: data.message,
+                type: 'error'
+            })
+        }
+    }
+
+    const reports_total = computed(() => {
+        return reports.value.length
+    })
+
+    const reports_unverified = computed(() => {
+        return reports.value.filter((report) => {
+            return report.status === 0
+        }).length
+    })
+
+    const attack_total = computed(() => {
+        return 0
+    })
+
+    const attack_unverified = computed(() => {
+        return 0
+    })
+
+    const attack_accpeted = computed(() => {
+        return 0
+    })
+
+    const reports_accepted = computed(() => {
+        return reports.value.filter((report) => {
+            return report.state === 1
+        }).length
+    })
+
+    const redteam_total = computed(() => {
+        return red_team_rank.value.length
+    })
+
+    const blueteam_total = computed(() => {
+        return blue_team_rank.value.length
+    })
+
     const toReports = () => {
         router.push({
             path : WebRoutesGamesJudgeReports.PATH.replace(':id', game_id.value)
@@ -128,6 +180,7 @@
             game_id.value = id
             get_red_team_rank()
             get_blue_team_rank()
+            get_reports()
         } else {
             router.push({
                 path : WebRoutesGamesList.PATH

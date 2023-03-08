@@ -64,7 +64,8 @@
                     <!-- set pagination -->
                     <div style="text-align: center;">
                         <el-pagination
-                            layout="prev, pager, next" :total="50"
+                            layout="prev, pager, next" :total="5000000"
+                            v-model:current-page="reports_page"
                         >
                         </el-pagination>
                     </div>
@@ -105,6 +106,14 @@
                             </template>
                         </el-table-column>
                     </el-table>
+                    <!-- set pagination -->
+                    <div style="text-align: center;">
+                        <el-pagination
+                            layout="prev, pager, next" :total="5000000"
+                            v-model:current-page="attacks_page"
+                        >
+                        </el-pagination>
+                    </div>
                 </el-col>
             </el-row>
         </el-col>
@@ -114,7 +123,7 @@
 <script lang="ts" setup>
     import { useRouter } from 'vue-router'
     import { WebRoutesGamesReportEditor, WebRoutesGamesAttackEditor, WebRoutesGamesList, WebRoutesGamesAttackReportDetail } from '@/router/routes/game'
-    import { ref, onMounted } from 'vue'
+    import { ref, onMounted, watch } from 'vue'
 
     import { 
         api_game_attacker_attack_list,
@@ -172,6 +181,14 @@
 
     const reports_page = ref(1)
     const attacks_page = ref(1)
+
+    watch(reports_page, () => {
+        getReports()
+    })
+
+    watch(attacks_page, () => {
+        getAttacks()
+    })
 
     const getReports = async () => {
         const data = await api_game_attacker_report_list(game_id.value, reports_page.value, 20)

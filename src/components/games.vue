@@ -1,6 +1,14 @@
 <template>
     <div>
         <el-table :data="games" style="width: 100%">
+            <el-table-column type="expand">
+            <template #default="scope">
+                <div m="4">
+                    <div v-if="isAdminRoute" v-html="scope.row.header_html"></div>
+                    <div v-html="scope.row.game.header_html"></div>
+                </div>
+            </template>
+            </el-table-column>
             <el-table-column prop="id" label="ID" width="180" v-if="isAdminRoute"></el-table-column>
             <el-table-column prop="id" label="ID" width="180">
                 <template #default="scope">
@@ -8,7 +16,6 @@
                     <span v-else>{{ scope.row.game.id }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="name" label="名称" v-if="isAdminRoute"></el-table-column>
             <el-table-column prop="name" label="名称">
                 <template #default="scope">
                     <span v-if="isAdminRoute">{{ scope.row.name }}</span>
@@ -43,17 +50,16 @@
                     <el-tag v-else-if="scope.row.identity === 4">甲方</el-tag>
                 </template>
             </el-table-column>
-            <el-table-column label="操作">
+            <el-table-column label="操作" width="200">
                 <template #default="scope">
                     <el-button type="text" size="small" @click="toAttackBigScreen(isAdminRoute ? scope.row.id : scope.row.game.id)">攻击大屏</el-button>
                     <el-button type="text" size="small">防守大屏</el-button>
-                    <el-button type="text" size="small" v-if="isAdminRoute" >管理后台</el-button>
-                    <el-button type="text" size="small" v-if="isAdminRoute"
-                        @click="toEditor(scope.row.id)"
-                    >编辑</el-button>
-                    <el-button type="text" size="small" v-if="scope.row.identity == 2" @click="toJudge(isAdminRoute ? scope.row.id : scope.row.game.id)">裁判后台</el-button>
-                    <el-button type="text" size="small" v-if="scope.row.identity == 1" @click="toDefender(isAdminRoute ? scope.row.id : scope.row.game.id)">防守方后台</el-button>
-                    <el-button type="text" size="small" v-if="scope.row.identity == 0" @click="toAttacker(isAdminRoute ? scope.row.id : scope.row.game.id)">攻击方后台</el-button>
+                    <el-button type="text" size="small" v-if="isAdminRoute">管理后台</el-button>
+                    <el-button type="text" size="small" v-if="isAdminRoute" @click="toEditor(scope.row.id)">编辑</el-button>
+                    <el-button size="small" type="primary" v-if="scope.row.identity == 2" @click="toJudge(isAdminRoute ? scope.row.id : scope.row.game.id)">裁判后台</el-button>
+                    <el-button size="small" type="success" v-if="scope.row.identity == 1" @click="toDefender(isAdminRoute ? scope.row.id : scope.row.game.id)">防守方后台</el-button>
+                    <el-button size="small" type="success" v-if="scope.row.identity == 0" @click="toAttacker(isAdminRoute ? scope.row.id : scope.row.game.id)">攻击方后台</el-button>
+                    <el-button size="small" type="primary" v-if="scope.row.identity == 2 || scope.row.identity == 4" @click="toManagerAnalysis(isAdminRoute ? scope.row.id : scope.row.game.id)">统计分析</el-button>
                 </template>
             </el-table-column>
         </el-table>
@@ -67,7 +73,7 @@ import { api_admin_get_games, api_get_games } from '@/api/game'
 import { isSuccess } from '@/api/utils';
 import { ElNotification } from 'element-plus';
 import { WebRoutesAdminGameEditor } from '@/router/routes/admin/admin';
-import { WebRoutesGamesAttackerPage, WebRoutesGamesDefenderPage, WebRoutesGamesJudgePage } from '@/router/routes/game';
+import { WebRoutesGamesAttackerPage, WebRoutesGamesDefenderPage, WebRoutesGamesJudgePage, WebRoutesGamesManagerAnalysis } from '@/router/routes/game';
 import { AttackRoute } from '@/router/routes/bigscreen';
 
 const router = useRouter()
@@ -120,7 +126,13 @@ const toAttacker = (id : string) => {
 
 const toAttackBigScreen = (id : string) => {
     router.push({
-        path : `${AttackRoute.PATH.replace(':id', id)})}`
+        path : AttackRoute.PATH.replace(':id', id)
+    })
+}
+
+const toManagerAnalysis = (id : string) => {
+    router.push({
+        path : `${WebRoutesGamesManagerAnalysis.PATH.replace(':id', id)}`
     })
 }
 

@@ -8,7 +8,7 @@
             <div class="judge_report">
                 <cardinfo
                     :title="'时间：' + new Date(report.create_at * 1000).toLocaleString()"
-                    :content="report.name"
+                    :content="report.name + '-' + getCardState(report.state)"
                     :type="getCardType(report.state)"
                     @click="toReport(report.id)"
                 ></cardinfo>
@@ -63,6 +63,19 @@ const getCardType = (state: any) : string => {
             return 'success'
         case 2:
             return 'danger'
+        default:
+            return ''
+    }
+}
+
+const getCardState = (state: any) : string => {
+    switch (state) {
+        case 0:
+            return '未审核'
+        case 1:
+            return '已通过'
+        case 2:
+            return '未通过'
         default:
             return ''
     }

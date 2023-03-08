@@ -29,3 +29,9 @@ export const api_download_file = (game_id: string, file_id: string, filename: st
 
     xhr.send()
 }
+
+export const api_upload_image = (file: File) => api_file_upload('/api/common/image/upload', file, {})
+
+export const api_download_image_url = (file_hash: string) => {
+    return axios.defaults.baseURL + `/api/common/image/download?hash=${file_hash}`
+}
