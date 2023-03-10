@@ -1,7 +1,7 @@
 <template>
     <div class="attack_page">
         <div class="attack_top">
-            0xUn1on网络安全攻防平台
+            {{ game.name }}
         </div>
         <div class="attack_body">
             <div class="attack_page_left">
@@ -54,7 +54,14 @@
                     </div>
                     <div class="attack_page_left_bottom_item">
                         <div class="attack_page_left_bottom_item_title">
-                            通知
+                            公告
+                        </div>
+                        <div class="boardcast-content">
+                            <div class="boardcast-content-item" v-for="item in boardcast">
+                                {{ item.content }}
+                                <div class="boardcast-content-item-content">
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="attack_page_left_bottom_item">
@@ -71,13 +78,27 @@
                                     :percentage="industry_percent(item.count)" 
                                     :stroke-width="20" 
                                     :text-inside="true"
-                                ></el-progress>
+                                >
+                                    {{  industry_percent(item.count).toFixed(2) + '%'  }}
+                                </el-progress>
                             </div>
                         </div>
                     </div>
                     <div class="attack_page_left_bottom_item">
                         <div class="attack_page_left_bottom_item_title">
                             发现问题单位
+                        </div>
+                        <div class="">
+                            <div class="attack_page_left_bottom_item_body">
+                                <div class="attack_page_attack_type" v-for="item in statistics.attacked_defender">
+                                    <div class="attack_page_attack_type_name">
+                                        {{ item.defender.name }} :
+                                    </div>
+                                    <div class="attack_page_attack_type_value">
+                                        {{ item.count }}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -91,7 +112,7 @@
                         <li v-for="red in statistics.red_teams">
                             <div class="attack_page_right_red_rank_item">
                                 <div class="attack_page_right_red_rank_item_name">
-                                    {{ red.name }}
+                                    <el-icon><DArrowRight></DArrowRight></el-icon> {{ red.name }}
                                 </div>
                                 <div class="attack_page_right_red_rank_item_score">
                                     {{ red.score }}
@@ -100,25 +121,21 @@
                         </li>
                     </ul>
                 </div>
-                <div class="attack_page_right_blue_rank attack_page_right_item">
-                    <div class="attack_page_left_bottom_item_title">
-                        蓝队排名
-                    </div>
-                    <ul>
-                        <li v-for="blue in statistics.blue_teams">
-                            <div class="attack_page_right_red_rank_item">
-                                <div class="attack_page_right_red_rank_item_name">
-                                    {{ blue.name }}
-                                </div>
-                                <div class="attack_page_right_red_rank_item_score">
-                                    {{ blue.score }}
-                                </div>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
                 <div class="attack_page_right_attack_types attack_page_right_item">
-                    
+                    <el-row class="attack_page_right_attack_types_inner">
+                        <el-col :span="6" v-for="vuln in statistics.vuln_types">
+                            <el-progress :percentage="vuln_types_percent(vuln.count)" type="dashboard" width="110">
+                                <div class="attack_page_right_attack_types_inner_item">
+                                    <div class="attack_page_right_attack_types_inner_item_name" v-for="typ in vuln_types" v-show="typ.value == vuln.value">
+                                        {{ typ.cn }}
+                                    </div>
+                                    <div class="attack_page_right_attack_types_inner_item_value">
+                                        {{ vuln.count }}
+                                    </div>
+                                </div>
+                            </el-progress>
+                        </el-col>
+                    </el-row>
                 </div>
             </div>
         </div>
@@ -128,7 +145,7 @@
 <script setup lang="ts">
     import textbox from './components/textbox.vue';
     import { ref, onMounted, computed, reactive, onBeforeUnmount } from 'vue'
-    import { api_game_attacker_statistics, api_game_attacker_report_section } from '@/api/game'
+    import { api_game_attacker_statistics, api_game_attacker_report_section, api_game_detail } from '@/api/game'
     import { useRouter } from 'vue-router';
     import { isSuccess } from '@/api/utils';
     import { VueEcharts } from 'vue3-echarts';
@@ -136,6 +153,7 @@
     import 'echarts-gl'
     import * as echarts from 'echarts'
     import geoMap from '@/assets/random_map.geojson?raw'
+    import { DArrowRight } from '@element-plus/icons'
 
     const geoJson = JSON.parse(geoMap)
 
@@ -164,6 +182,16 @@
         industry: [] as Industry[],
         red_teams : [] as any[],
         blue_teams : [] as any[],
+        vuln_types : [] as any[],
+        attacked_defender : [] as any[],
+    })
+
+    const total_vuln_types = computed(() => {
+        let total = 0
+        statistics.value.vuln_types.forEach(item => {
+            total += item.count
+        })
+        return total
     })
 
     const total_industry = computed(() => {
@@ -174,12 +202,16 @@
         return total
     })
 
+    const boardcast = ref([] as any[])
+
+    const game = ref({} as any)
+
     const industry_percent = (value: number) => {
         return (value / total_industry.value) * 100
     }
 
-    const industry_format = (value: number) => {
-        return ((value / total_industry.value) * 100).toFixed(2) + '%'
+    const vuln_types_percent = (value: number) => {
+        return (value / total_vuln_types.value) * 100
     }
 
     class Section {
@@ -189,11 +221,14 @@
     }
 
     const attack_types = ref([] as Section[])
+    const vuln_types = ref([] as Section[])
 
     const game_id = ref('')
 
     const red_team_map_choice = ref({} as any) // team_id => geojson_feature_index
     
+    let boardcast_timer = null as any
+
     const get_statistics = async () => {
         const data = await api_game_attacker_statistics(game_id.value)
         if (isSuccess(data)) {
@@ -210,6 +245,20 @@
 
             statistics.value.red_teams = data.data.statistics.rank.red_team
             statistics.value.blue_teams = data.data.statistics.rank.blue_team
+            statistics.value.vuln_types = data.data.statistics.attack_types.vuln_type.sort((a: any, b: any) => {
+                return b.count - a.count
+            }).slice(0, 8)
+            statistics.value.attacked_defender = data.data.statistics.defender_reverse_rank.sort((a: any, b: any) => {
+                return b.count - a.count
+            })
+            
+            boardcast.value = data.data.statistics.boardcast
+            if (boardcast_timer === null) {
+                boardcast_timer = setInterval(() => {
+                    // remove first and add last
+                    boardcast.value.push(boardcast.value.shift())
+                }, 1000)
+            }
 
             // refresh map options
             const redteams = data.data.statistics.rank.red_team
@@ -252,10 +301,18 @@
         }
     }
 
-    const get_attack_types = async () => {
+    const get_game = async () => {
+        const data = await api_game_detail(game_id.value)
+        if (isSuccess(data)) {
+            game.value = data.data.game
+        }
+    }
+
+    const get_sections = async () => {
         const data = await api_game_attacker_report_section(game_id.value)
         if (isSuccess(data)) {
             attack_types.value = data.data.sections.attack_type
+            vuln_types.value = data.data.sections.vuln_type
         }
     }
 
@@ -360,8 +417,27 @@
         const gid = id + ''
         if(gid != '') {
             game_id.value = gid
-            await get_attack_types()
+            await get_sections()
             await get_statistics()
+            await get_game()
+
+            // start timer on game.end_time
+            const now = parseInt((new Date().getTime() / 1000).toString())
+            const end_time = parseInt(game.value.end_time)
+            let diff = end_time - now
+            if (diff > 0) {
+                let timer = setInterval(async () => {
+                    const hour = parseInt((diff / 3600).toString())
+                    const minute = parseInt(((diff - hour * 3600) / 60).toString())
+                    const second = diff - hour * 3600 - minute * 60
+                    const time = hour + ":" + minute + ":" + second
+                    statistics.value.remainder_time = time
+                    diff -= 1
+                    if (diff <= 0) {
+                        clearInterval(timer)
+                    }
+                }, 1000)
+            }
 
             timer = setInterval(async () => {
                 await get_statistics()
@@ -378,46 +454,32 @@
 </script>
 
 <style lang="less">
-    /**
-    <div class="attack_page_right">
-                <div class="attack_page_right_red_rank attack_page_right_item">
-                    <div class="attack_page_left_bottom_item_title">
-                        红队排名
-                    </div>
-                    <ul>
-                        <li v-for="red in statistics.red_teams">
-                            <div class="attack_page_right_red_rank_item">
-                                <div class="attack_page_right_red_rank_item_name">
-                                    {{ red.name }}
-                                </div>
-                                <div class="attack_page_right_red_rank_item_score">
-                                    {{ red.score }}
-                                </div>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-                <div class="attack_page_right_blue_rank attack_page_right_item">
-                    <div class="attack_page_left_bottom_item_title">
-                        蓝队排名
-                    </div>
-                    <ul>
-                        <li v-for="blue in statistics.blue_teams">
-                            <div class="attack_page_right_red_rank_item">
-                                <div class="attack_page_right_red_rank_item_name">
-                                    {{ blue.name }}
-                                </div>
-                                <div class="attack_page_right_red_rank_item_score">
-                                    {{ blue.score }}
-                                </div>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-                <div class="attack_page_right_attack_types attack_page_right_item">
-                    
-                </div>
-            </div> */
+    @font-face {
+        font-family: 'Digial-7';
+        src: url('./assets/digital-7.ttf') format('truetype');
+    }
+
+    div, span {
+        font-family: 'Digial-7';
+    }
+
+    .textbox-value {
+        font-size: 2.5rem;
+    }
+
+    .boardcast-content {
+        font-size: 1.5rem;
+        max-height: 100%;
+        overflow: hidden;
+    }
+    
+    .boardcast-content-item {
+        margin: 20px;
+        font-size: 16px;
+        color: aliceblue;
+        text-overflow: ellipsis;
+    }
+
     .attack_page_right {
         width: 100%;
         height: 100%;
@@ -430,7 +492,6 @@
             list-style: none;
             padding-left: 40px;
             padding-right: 40px;
-            margin: 0;
 
             li {
                 width: 100%;
@@ -456,6 +517,10 @@
                     flex-direction: row;
                     justify-content: space-between;
                     align-items: center;
+                    background-image: url('./assets/team_bannar.png');
+                    background-repeat: no-repeat;
+                    background-position-y: bottom;
+                    background-size: 90%;
                 }
 
                 .attack_page_right_red_rank_item_name {
@@ -465,6 +530,12 @@
                     flex-direction: row;
                     justify-content: flex-start;
                     align-items: center;
+                    color: rgb(0, 176, 230);
+                    font-weight: 300;
+                }
+
+                .attack_page_right_red_rank_item_score {
+                    font-size: 26px;
                 }
             }
         }
@@ -500,7 +571,6 @@
         align-items: center;
 
         .el-progress-bar__inner {
-            background-color: rgb(48, 109, 179);
         }
     }
 
@@ -543,7 +613,7 @@
         flex-direction: row;
         justify-content: flex-start;
         align-items: center;
-        font-size: 18px;
+        font-size: 26px;
         color: rgb(7,231,252);
         font-weight: 600;
     }
@@ -551,7 +621,7 @@
     .attack_page {
         width: calc(100% - 40px);
         height: 100%;
-        background-image: url('./assets/background.png');
+        background-image: url('./assets/3f428650-0da6-11ed-a08a-4fd4b75099cf.png');
         background-size: 100% 100%;
         padding: 0 20px;
     }
@@ -669,17 +739,68 @@
 
     .attack_page_right_red_rank {
         width: 100%;
-        height: 30%;
+        height: 60%;
     }
 
-    .attack_page_right_blue_rank {
-        width: 100%;
-        height: 30%;
+    .attack_page_right_attack_types_inner {
+        margin: 20px;
+
+        .el-progress--dashboard::before {
+            content: '';
+            position: absolute;
+            width: calc(100% / 2);
+            height: calc(100% / 2);
+            left: calc(25% / 2);
+            /*border: 1px solid white;*/
+            background: linear-gradient(
+                    45deg,
+                    rgba(0, 0, 0, 0) 50%,
+                    rgb(0, 147, 192, 0.1) 100%
+                );
+            border-radius: 100% 0 0 0;
+            animation: 
+            scaning 5s linear infinite;
+            transform-origin: 100% 100%;
+            margin-left: -15px;
+        }
+
+        .attack_page_right_attack_types_inner_dashboard {
+            width: 100%;
+            height: 100%;
+        }
+
+        @keyframes scaning {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .el-col-6 {
+            padding: 10px;
+            text-align: center;
+
+            background-image: url('./assets/lefttop.png'), url('./assets/righttop.png'), url('./assets/leftbottom.png'), url('./assets/rightbottom.png');
+            background-repeat: no-repeat, no-repeat, no-repeat, no-repeat;
+            background-position: 10px 10px, calc(100% - 10px) 10px, 10px calc(100% - 10px), calc(100% - 10px) calc(100% - 10px);
+
+            .attack_page_right_attack_types_inner_item_name {
+                font-size: 15px;
+                color: #67a1df;
+                font-weight: 600;
+            }
+
+            .attack_page_right_attack_types_inner_item_value {
+                font-size: 26px;
+                color: #fff;
+                font-weight: 600;
+            }
+        }
     }
 
     .attack_page_right_attack_types {
         width: 100%;
         height: 40%;
+        margin: 20px !important;
     }
 
     .attack_page_right_item {
@@ -689,5 +810,8 @@
         background-size: 100% 100%;
     }
 
+    * {
+        font-family: 'Microsoft YaHei';
+    }
 
 </style>

@@ -18,7 +18,7 @@ export default class User extends VuexModule {
     }
 
     get isLogin() {
-        return this.id !== ''
+        return this.id != ''
     }
 
     get isAdmin() {

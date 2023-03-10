@@ -18,6 +18,11 @@ export enum AttackRoute {
     NAME = 'bigscreen_attack',
 }
 
+export enum DefenderRoute {
+    PATH = '/bigscreen/defender/:id',
+    NAME = 'bigscreen_defender',
+}
+
 enum InitRootRoute {
     PATH = '/bigscreen/init_root',
     NAME = 'init_root',
@@ -51,6 +56,11 @@ const routes: RouteRecordRaw = {
             path: AttackRoute.PATH,
             name: AttackRoute.NAME,
             component: () => import('@/views/bigscreen/attack.vue')
+        },
+        {
+            path: DefenderRoute.PATH,
+            name: DefenderRoute.NAME,
+            component: () => import('@/views/bigscreen/defender.vue')
         },
         {
             path: BigScreenRoutes.PATH,

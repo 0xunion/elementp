@@ -27,7 +27,7 @@
                     <div class="judge_report">
                         <cardinfo
                             :title="'时间：' + new Date(report.create_at * 1000).toLocaleString()"
-                            :content="report.name"
+                            :content="report.title"
                             :type="getCardType(report.state)"
                             @click="toReport(report.id)"
                         ></cardinfo>
@@ -53,12 +53,12 @@
 </template>
 
 <script lang="ts" setup>
-import { api_game_manage_report_list } from '@/api/game'; 
+import { api_game_manage_trace_report_list } from '@/api/game'; 
 import { ElNotification } from 'element-plus';
 import { isSuccess } from '@/api/utils';
 import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { WebRoutesGamesJudgeReportDetail } from '@/router/routes/game'
+import { WebRoutesGamesJudgeTracerReportDetail } from '@/router/routes/game'
 import { getHtmlInnerText } from '@/utils/html'
 
 import cardinfo from '@/components/cardinfo.vue';
@@ -78,12 +78,12 @@ const state_list = ref([
 const title = ref('')
 
 const get_reports = async () => {
-    const data = await api_game_manage_report_list(game_id.value, page.value, 30, 1, state.value, title.value)
+    const data = await api_game_manage_trace_report_list(game_id.value, page.value, 30, state.value, title.value)
     if (isSuccess(data)) {
         reports.value = data.data.reports
     } else {
         ElNotification({
-            title: '获取评测报告列表失败',
+            title: '获取溯源报告列表失败',
             message: data.message,
             type: 'error'
         })
@@ -118,7 +118,7 @@ const getCardState = (state: any) : string => {
 
 const toReport = (id: string) => {
     router.push({
-        path : WebRoutesGamesJudgeReportDetail.PATH.replace(':game_id', game_id.value).replace(':id', id)
+        path : WebRoutesGamesJudgeTracerReportDetail.PATH.replace(':game_id', game_id.value).replace(':id', id)
     })
 }
 

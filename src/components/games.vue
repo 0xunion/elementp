@@ -53,7 +53,7 @@
             <el-table-column label="操作" width="200">
                 <template #default="scope">
                     <el-button type="text" size="small" @click="toAttackBigScreen(isAdminRoute ? scope.row.id : scope.row.game.id)">攻击大屏</el-button>
-                    <el-button type="text" size="small">防守大屏</el-button>
+                    <el-button type="text" size="small" @click="toDefendBigScreen(isAdminRoute ? scope.row.id : scope.row.game.id)">防守大屏</el-button>
                     <el-button type="text" size="small" v-if="isAdminRoute">管理后台</el-button>
                     <el-button type="text" size="small" v-if="isAdminRoute" @click="toEditor(scope.row.id)">编辑</el-button>
                     <el-button size="small" type="primary" v-if="scope.row.identity == 2" @click="toJudge(isAdminRoute ? scope.row.id : scope.row.game.id)">裁判后台</el-button>
@@ -74,7 +74,7 @@ import { isSuccess } from '@/api/utils';
 import { ElNotification } from 'element-plus';
 import { WebRoutesAdminGameEditor } from '@/router/routes/admin/admin';
 import { WebRoutesGamesAttackerPage, WebRoutesGamesDefenderPage, WebRoutesGamesJudgePage, WebRoutesGamesManagerAnalysis } from '@/router/routes/game';
-import { AttackRoute } from '@/router/routes/bigscreen';
+import { AttackRoute, DefenderRoute } from '@/router/routes/bigscreen';
 
 const router = useRouter()
 
@@ -127,6 +127,12 @@ const toAttacker = (id : string) => {
 const toAttackBigScreen = (id : string) => {
     router.push({
         path : AttackRoute.PATH.replace(':id', id)
+    })
+}
+
+const toDefendBigScreen = (id : string) => {
+    router.push({
+        path : DefenderRoute.PATH.replace(':id', id)
     })
 }
 

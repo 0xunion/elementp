@@ -21,6 +21,7 @@ specifiers:
   typescript: ^4.9.3
   unplugin-auto-import: ^0.15.0
   unplugin-vue-components: ^0.24.0
+  v-region: 3.0.0-beta.3
   vite: ^4.1.0
   vue: ^3.2.45
   vue-i18n: 9.3.0-beta.16
@@ -50,6 +51,7 @@ dependencies:
   md5: 2.3.0
   querystring: 0.2.1
   sass: 1.58.3
+  v-region: 3.0.0-beta.3_vue@3.2.47
   vue: 3.2.47
   vue-i18n: 9.3.0-beta.16_vue@3.2.47
   vue-router: 4.1.6_vue@3.2.47
@@ -3051,6 +3053,23 @@ packages:
 
   /util-deprecate/1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
+
+  /v-dropdown/3.0.0-beta.1_vue@3.2.47:
+    resolution: {integrity: sha512-UzIompU3CHtRu3QvlNaMxhXMYmPexVbkY9nsftZIx+3VuskWoCpH/drOsPRQwBHST0Ox3nWpEgzS9OhcUisNQQ==}
+    peerDependencies:
+      vue: ^3.2.0
+    dependencies:
+      vue: 3.2.47
+    dev: false
+
+  /v-region/3.0.0-beta.3_vue@3.2.47:
+    resolution: {integrity: sha512-fWkOI11kiRBhaey08D4y/o/QPJcRchypGqeJiGtQywnabZx1aRipms5VhZSP2OoKmrYj5VtMJb8ArO/cUP5p+g==}
+    peerDependencies:
+      vue: ^3.2.0
+    dependencies:
+      v-dropdown: 3.0.0-beta.1_vue@3.2.47
+      vue: 3.2.47
+    dev: false
 
   /vite/4.1.4_lbg3cqwe5itspv4atunumslsii:
     resolution: {integrity: sha512-3knk/HsbSTKEin43zHu7jTwYWv81f8kgAL99G5NWBcA1LKvtvcVAC4JjBH1arBunO9kQka+1oGbrMKOjk4ZrBg==}

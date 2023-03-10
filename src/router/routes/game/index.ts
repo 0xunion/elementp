@@ -72,6 +72,36 @@ export enum WebRoutesGamesManagerAnalysis {
     FILE = '@/views/web/games/analysis.vue',
 }
 
+export enum WebRoutesGamesJudgeAttacks {
+    PATH = '/web/games/judge/attacks/:id?',
+    NAME = 'web_games_judge_attacks',
+    FILE = '@/views/web/games/judge_attacks.vue',
+}
+
+export enum WebRoutesGamesDefenderReportEditor {
+    PATH = '/web/games/defender/report/editor/:game_id/:id?',
+    NAME = 'web_games_defender_report_editor',
+    FILE = '@/views/web/games/defender_report_editor.vue',
+}
+
+export enum WebRoutesGamesDefenderReportDetail {
+    PATH = '/web/games/defender/report/detail/:game_id/:id?',
+    NAME = 'web_games_defender_report_detail',
+    FILE = '@/views/web/games/defender_report.vue',
+}
+
+export enum WebRoutesGamesJudgeTracerReports {
+    PATH = '/web/games/judge/tracer/reports/:id?',
+    NAME = 'web_games_judge_trace_reports',
+    FILE = '@/views/web/games/judge_trace_reports.vue',
+}
+
+export enum WebRoutesGamesJudgeTracerReportDetail {
+    PATH = '/web/games/judge/tracer/report/detail/:game_id/:id?',
+    NAME = 'web_games_judge_trace_report_detail',
+    FILE = '@/views/web/games/judge_trace_report.vue',
+}
+
 export const routes: RouteRecordRaw[] = [
     {
         path: WebRoutesGamesList.PATH,
@@ -180,5 +210,50 @@ export const routes: RouteRecordRaw[] = [
             title: '比赛分析',
             require : () => false
         }
-    }
+    },
+    {
+        path: WebRoutesGamesJudgeAttacks.PATH,
+        name: WebRoutesGamesJudgeAttacks.NAME,
+        component: () => import(WebRoutesGamesJudgeAttacks.FILE),
+        meta : {
+            title: '裁判攻击',
+            require : () => false
+        }
+    },
+    {
+        path: WebRoutesGamesDefenderReportEditor.PATH,
+        name: WebRoutesGamesDefenderReportEditor.NAME,
+        component: () => import(WebRoutesGamesDefenderReportEditor.FILE),
+        meta : {
+            title: '溯源报告编辑',
+            require : () => false
+        }
+    },
+    {
+        path: WebRoutesGamesDefenderReportDetail.PATH,
+        name: WebRoutesGamesDefenderReportDetail.NAME,
+        component: () => import(WebRoutesGamesDefenderReportDetail.FILE),
+        meta : {
+            title: '溯源报告详情',
+            require : () => false
+        }
+    },
+    {
+        path: WebRoutesGamesJudgeTracerReports.PATH,
+        name: WebRoutesGamesJudgeTracerReports.NAME,
+        component: () => import(WebRoutesGamesJudgeTracerReports.FILE),
+        meta : {
+            title: '裁判溯源报告',
+            require : () => false
+        }
+    },
+    {
+        path: WebRoutesGamesJudgeTracerReportDetail.PATH,
+        name: WebRoutesGamesJudgeTracerReportDetail.NAME,
+        component: () => import(WebRoutesGamesJudgeTracerReportDetail.FILE),
+        meta : {
+            title: '裁判溯源报告详情',
+            require : () => false
+        }
+    },
 ]

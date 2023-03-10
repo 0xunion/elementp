@@ -134,7 +134,11 @@
    
 <style lang="less" scoped>
   .login_container {
-    background-color: #2b4b6b;
+    background-image: url('@/assets/bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    width: 100%;
     height: 100vh;
   }
   .login_box {

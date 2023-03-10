@@ -19,6 +19,30 @@
                     <el-menu-item v-for="child in route.children" :title="child.name" :key="child.name" :index="child.name" @click="router.push(child)" v-show="allowRoute(child)">{{ child.meta?.title }}</el-menu-item>
                 </el-menu-item-group>
             </el-sub-menu>
+            <!-- right -->
+            <div class="flex-grow" />
+            <el-menu-item index="1">
+                <el-sub-menu v-if="store.getters['user/isLogin']">
+                    <template #title>
+                        <el-icon><user /></el-icon>
+                        <span>{{ store.getters['user/getUserName'] }}</span>
+                    </template>
+                    <el-menu-item-group>
+                        <el-menu-item index="1-1" @click="logout">退出登录</el-menu-item>
+                    </el-menu-item-group>
+                </el-sub-menu>
+            </el-menu-item>
+            <el-menu-item index="2">
+                <el-sub-menu v-if="!store.getters['user/isLogin']">
+                    <template #title>
+                        <el-icon><user /></el-icon>
+                        <span>登录</span>
+                    </template>
+                    <el-menu-item-group>
+                        <el-menu-item index="2-1" @click="login">登录</el-menu-item>
+                    </el-menu-item-group>
+                </el-sub-menu>
+            </el-menu-item>
         </el-menu>
     </el-header>
     <div :class="['wrapper']" class="web_container">
@@ -59,7 +83,11 @@
     import { web_routes } from '@/router/routes/web'
     import { Location, CircleCheckFilled } from '@element-plus/icons-vue'
     import { useRouter } from 'vue-router';
+    import { useStore } from 'vuex'
+    import { setAuthToken } from '@/api/utils'
+    import { LoginRoute } from '@/router/routes/bigscreen'
 
+    const store = useStore()
     const router = useRouter()
 
     // build a route list which has at most two levels
@@ -83,6 +111,16 @@
             return false
         }
         return route.meta.require()
+    }
+
+    const logout = () => {
+        setAuthToken('')
+        // refresh the page
+        location.reload()
+    }
+
+    const login = () => {
+        router.push({ name: LoginRoute.NAME })
     }
 
     const isRouterAlive = ref<boolean>(true)
@@ -173,6 +211,8 @@ header {
     border-left: 1px solid #ebeef5;
     border-right: 1px solid #ebeef5;
     min-height: calc(100vh - 400px);
+    background-color: white;
+    margin-bottom: 20px;
 }
 
 // set web all background to /static/images/web_bg.png
@@ -184,8 +224,8 @@ header {
     // // when the scroll event is triggered, the background image should not move
     // background-attachment: fixed;
     // cover the whole screen
-    height: 100vh;
     width: 100%;
+    background-color: rgb(245,247,249);
 }
 
 // set el-table header to transparent
@@ -196,6 +236,10 @@ header {
 // set all font-family to 'Microsoft YaHei'
 * {
     font-family: 'Microsoft YaHei';
+}
+
+.flex-grow {
+    flex-grow: 1;
 }
 
 </style>

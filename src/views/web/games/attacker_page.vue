@@ -122,7 +122,7 @@
 
 <script lang="ts" setup>
     import { useRouter } from 'vue-router'
-    import { WebRoutesGamesReportEditor, WebRoutesGamesAttackEditor, WebRoutesGamesList, WebRoutesGamesAttackReportDetail } from '@/router/routes/game'
+    import { WebRoutesGamesReportEditor, WebRoutesGamesAttackEditor, WebRoutesGamesList, WebRoutesGamesAttackReportDetail, WebRoutesGamesJudgeAttacks } from '@/router/routes/game'
     import { ref, onMounted, watch } from 'vue'
 
     import { 

@@ -59,9 +59,15 @@
             <el-button-group>
                 <el-button type="primary" @click="toReports">查看报告</el-button>
                 <el-button type="primary" @click="toAttacks">查看攻击</el-button>
+                <el-button type="primary" @click="toTraceReports">查看溯源攻击</el-button>
+                <el-button type="primary" @click="publishBoardcast">发布公告</el-button>
             </el-button-group>
         </el-col>
     </el-row>
+    <el-dialog width="50%" v-model="boardcast_dialog" title="发布公告">
+        <el-input v-model="boardcast" type="textarea" :autosize="{ minRows: 3, maxRows: 5 }"></el-input>
+        <el-button type="primary" @click="publish">发布</el-button>
+    </el-dialog>
 </template>
 
 <script setup lang="ts">
@@ -73,10 +79,12 @@
     import {
         api_game_manage_rank_red_team,
         api_game_manage_rank_blue_team,
-        api_game_manage_report_list
+        api_game_manage_report_list,
+        api_game_manage_boardcast_publish,
+        api_game_manage_attack_list
     } from '@/api/game'
 
-    import { WebRoutesGamesJudgeReports, WebRoutesGamesList } from '@/router/routes/game'
+    import { WebRoutesGamesJudgeReports, WebRoutesGamesList, WebRoutesGamesJudgeAttacks, WebRoutesGamesJudgeTracerReports } from '@/router/routes/game'
     import { isSuccess } from '@/api/utils'
     import { ElNotification } from 'element-plus'
 
@@ -86,8 +94,12 @@
     const blue_team_rank = ref([])
 
     const reports = ref([] as any[])
+    const attacks = ref([] as any[])
 
     const game_id = ref('')
+
+    const boardcast_dialog = ref(false)
+    const boardcast = ref('')
 
     const get_red_team_rank = async () => {
         const data = await api_game_manage_rank_red_team(game_id.value, 1, 20)
@@ -116,12 +128,25 @@
     }
 
     const get_reports = async () => {
-        const data = await api_game_manage_report_list(game_id.value, 1, 2000, 1)
+        const data = await api_game_manage_report_list(game_id.value, 1, 2000, 1, -1, "")
         if (isSuccess(data)) {
             reports.value = data.data.reports
         } else {
             ElNotification({
                 title: '获取报告列表失败',
+                message: data.message,
+                type: 'error'
+            })
+        }
+    }
+
+    const get_attacks = async () => {
+        const data = await api_game_manage_attack_list(game_id.value, 1, 2000, -1, "")
+        if (isSuccess(data)) {
+            attacks.value = data.data.attacks
+        } else {
+            ElNotification({
+                title: '获取攻击列表失败',
                 message: data.message,
                 type: 'error'
             })
@@ -134,20 +159,24 @@
 
     const reports_unverified = computed(() => {
         return reports.value.filter((report) => {
-            return report.status === 0
+            return report.state === 0
         }).length
     })
 
     const attack_total = computed(() => {
-        return 0
+        return attacks.value.length
     })
 
     const attack_unverified = computed(() => {
-        return 0
+        return attacks.value.filter((attack) => {
+            return attack.state === 0
+        }).length
     })
 
     const attack_accpeted = computed(() => {
-        return 0
+        return attacks.value.filter((attack) => {
+            return attack.state === 1
+        }).length
     })
 
     const reports_accepted = computed(() => {
@@ -171,7 +200,38 @@
     }
 
     const toAttacks = () => {
-        
+        router.push({
+            path : WebRoutesGamesJudgeAttacks.PATH.replace(':id', game_id.value)
+        })
+    }
+
+    const toTraceReports = () => {
+        router.push({
+            path : WebRoutesGamesJudgeTracerReports.PATH.replace(':id', game_id.value)
+        })
+    }
+
+    const publishBoardcast = () => {
+        boardcast_dialog.value = true
+    }
+
+    const publish = async () => {
+        const data = await api_game_manage_boardcast_publish(game_id.value, boardcast.value)
+        if (isSuccess(data)) {
+            ElNotification({
+                title: '发布公告成功',
+                message: data.message,
+                type: 'success'
+            })
+            boardcast_dialog.value = false
+            boardcast.value = ''
+        } else {
+            ElNotification({
+                title: '发布公告失败',
+                message: data.message,
+                type: 'error'
+            })
+        }
     }
 
     onMounted(() => {
@@ -181,6 +241,7 @@
             get_red_team_rank()
             get_blue_team_rank()
             get_reports()
+            get_attacks()
         } else {
             router.push({
                 path : WebRoutesGamesList.PATH

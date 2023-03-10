@@ -7,12 +7,33 @@
                 </div>
                 <el-divider></el-divider>
                 <div>
-                    总隐患提交数量：{{ reports.length }} | 确认通过的隐患数量：{{ statistics_total_success_reports }}
+                    <el-icon>
+                        <Paperclip></Paperclip>
+                    </el-icon> 总隐患提交数量：{{ reports.length }} | 确认通过的隐患数量：{{ statistics_total_success_reports }}
                 </div>
+                <el-divider></el-divider>
                 <div>
-                    最佳攻击队: {{ statistics_best_red_team.name }}
+                    <el-icon>
+                        <Medal></Medal>
+                    </el-icon> 最佳攻击队: {{ statistics_best_red_team.name }} | 最佳防守队: {{ statistics_best_blue_team.name }}
                 </div>
+                <el-divider></el-divider>
             </div>
+        </el-col>
+        <el-col :span="24">
+            <div class="section_header">
+                近期隐患
+            </div>
+            <el-carousel :interval="4000" height="500px" class="analysis-carousel-item">
+                <el-carousel-item v-for="item in staistics_reports_accepted_raw.slice(0, 10)" :key="item.id">
+                    <div class="analysis-carousel-item-title">
+                        <span>隐患标题 - {{ item.name }}</span>
+                    </div>
+                    <div class="analysis-carousel-item">
+                        <div v-html="xssFilter(item.content)"></div>
+                    </div>
+                </el-carousel-item>
+            </el-carousel>
         </el-col>
         <el-col :span="8">
             <piechart :options="statistics_vuln_type" style="height: 300px;"></piechart>
@@ -78,9 +99,33 @@
                             :text-inside="true"
                             :stroke-width="18"
                             :percentage="redteam.score / statistics_red_team_max_score * 100"
-                            status="danger"
+                            status="exception"
                         >
                             {{ redteam.score }}分
+                        </el-progress>
+                    </div>
+                </el-col>
+            </el-row>
+        </el-col>
+        <el-col :span="24">
+            <el-row>
+                <el-col :span="24">
+                    <div class="section_header">
+                        蓝队排行TOP10 - 分数
+                    </div>
+                </el-col>
+                <el-col :span="24" v-for="blueteam in blue_team.slice(0, 10)">
+                    <div class="analysis-redteam">
+                        <span class="analysis-redteam-name">
+                            {{ blueteam.name }} - {{ blueteam.score }}分
+                        </span>
+                        <el-progress
+                            :text-inside="true"
+                            :stroke-width="18"
+                            :percentage="blueteam.score / statistics_blue_team_max_score * 100"
+                            status="danger"
+                        >
+                            {{ blueteam.score }}分
                         </el-progress>
                     </div>
                 </el-col>
@@ -101,6 +146,7 @@ import { ElNotification } from 'element-plus'
 import { isSuccess } from '@/api/utils'
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { xssFilter } from '@/utils/xss'
 
 import piechart from '@/components/piechart.vue'
 import linechart from '@/components/linechart.vue'
@@ -110,6 +156,10 @@ import {
 import {
     LineChartsOptions
 } from '@/components/linechart.vue'
+
+import {
+    Medal, Paperclip
+} from '@element-plus/icons'
 
 const router = useRouter()
 
@@ -342,6 +392,12 @@ const statistics_reports_commits = computed(() => {
     } as LineChartsOptions
 })
 
+const staistics_reports_accepted_raw = computed(() => {
+    return reports.value.filter((item: any) => {
+        return item.state == 1
+    })
+})
+
 const statistics_total_success_reports = computed(() => {
     return reports.value.filter((item: any) => {
         return item.state == 1
@@ -358,10 +414,39 @@ const statistics_red_team_max_score = computed(() => {
     return max
 })
 
+const statistics_blue_team_max_score = computed(() => {
+    let max = 0
+    blue_team.value.forEach((item: any) => {
+        if (item.score > max) {
+            max = item.score
+        }
+    })
+    return max
+})
+
 const statistics_best_red_team = computed(() => {
     let max = 0
     let best = {} as any
     red_team.value.forEach((item: any) => {
+        if (item.score > max) {
+            max = item.score
+            best = item
+        }
+    })
+
+    if (max === 0) {
+        return {
+            name: '暂无',
+            score: 0
+        }
+    }
+    return best
+})
+
+const statistics_best_blue_team = computed(() => {
+    let max = 0
+    let best = {} as any
+    blue_team.value.forEach((item: any) => {
         if (item.score > max) {
             max = item.score
             best = item
@@ -400,7 +485,7 @@ const get_sections = async () => {
 }
 
 const get_reports = async () => {
-    const data = await api_game_manage_report_list(game_id.value, 1, 3000, 1)
+    const data = await api_game_manage_report_list(game_id.value, 1, 3000, 1, -1, "")
     if (isSuccess(data)) {
         reports.value = data.data.reports
     } else {
@@ -471,11 +556,28 @@ onMounted(async () => {
 <style>
 .statistics_basic {
     width: 100%;
-    text-align: center;
-    font-size: 30px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 50px;
+    color: cornflowerblue;
+}
+
+.analysis-carousel-item {
+    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+    margin: 20px;
+}
+
+.analysis-carousel-item-title {
+    font-size: 16px;
     font-weight: 600;
     color: rgb(0,138,205);
-    margin-bottom: 50px;
+    margin: 10px;
+}
+
+.statistics_basic-title {
+    color: rgb(0,138,205);
+    font-size: 30px;
 }
 
 .analysis-redteam {

@@ -35,6 +35,11 @@
                         placeholder="选择日期时间">
                     </el-date-picker>
                 </el-form-item>
+                <el-form-item label="行政区域选择">
+                    <RegionSelects
+                        v-model="form.region"
+                    />
+                </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="submit">提交</el-button>
                 </el-form-item>
@@ -106,10 +111,10 @@
                 <el-col>
                     <el-divider />
                     <h1>甲方操作</h1>
-                        <el-button-group>
-                            <el-button type="primary" icon="el-icon-plus" @click="downloadTemplate('part_a')">获取甲方模板</el-button>
-                            <el-button type="primary" icon="el-icon-edit" @click="uploadTemplate('part_a')">导入甲方</el-button>
-                        </el-button-group>
+                    <el-button-group>
+                        <el-button type="primary" icon="el-icon-plus" @click="downloadTemplate('part_a')">获取甲方模板</el-button>
+                        <el-button type="primary" icon="el-icon-edit" @click="uploadTemplate('part_a')">导入甲方</el-button>
+                    </el-button-group>
                 </el-col>
             </el-row>
         </el-col>    
@@ -172,6 +177,7 @@
     } from '@/api/file'
     import { isSuccess } from '@/api/utils'
     import { WebRoutesAdminGameEditor, WebRoutesAdminGames } from '@/router/routes/admin/admin'
+    import { RegionSelects } from 'v-region'
 
     const router = useRouter()
 
@@ -182,8 +188,13 @@
         header_html : '',
         start_time : 0,
         end_time : 0,
+        region : {
+            province : '',
+            city : '',
+            area: '',
+            town: ''
+        }
     })
-
 
     const isNew = computed(() => {
         return form.value.id == ''
@@ -202,12 +213,17 @@
     }
 
     const create_game = async () => {
+        let position_code = form.value.region.province
+        if(form.value.region.city) {
+            position_code = form.value.region.city
+        }
         const data = await api_game_create(
             form.value.name, 
             form.value.description, 
             form.value.header_html, 
             parseFloat2Int(form.value.start_time / 1000),
-            parseFloat2Int(form.value.end_time / 1000)
+            parseFloat2Int(form.value.end_time / 1000),
+            position_code
         )
         if(isSuccess(data)) {
             ElNotification.success({
