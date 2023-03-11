@@ -240,3 +240,11 @@ export const api_game_defender_report_submit = (game_id: string, content: string
 export const api_game_defender_attacker_list = (game_id: string, page: number, page_size: number) => api_base('/api/custom/defender/attacker/list', 'GET', {
     game_id, page, page_size
 })
+
+export const api_game_defender_self = (game_id: string) => api_base('/api/custom/defender/self', 'GET', {
+    game_id
+})
+
+export const api_game_attacker_self = (game_id: string) => api_base('/api/custom/attacker/self', 'GET', {
+    game_id
+})

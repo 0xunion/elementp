@@ -1,6 +1,18 @@
 <template>
     <el-row>
         <el-col :span="24">
+            <h1>
+                信息概览
+            </h1>
+            <div>
+                单位名 - {{ team.name }}
+            </div>
+            <div style="margin: 20px;">
+                <cardinfo title="当前得分" :content="team.score"></cardinfo>
+            </div>
+            <el-divider></el-divider>
+        </el-col>
+        <el-col :span="24">
             <h1>溯源报告</h1>
             <el-divider></el-divider>
             <el-button type="primary" @click="toNewReport">提交溯源报告</el-button>
@@ -67,7 +79,8 @@
 
 <script setup lang="ts">
 import {
-    api_game_defender_report_list
+    api_game_defender_report_list,
+    api_game_defender_self
 } from '@/api/game'
 import { onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
@@ -76,6 +89,8 @@ import {
 } from '@/router/routes/game'
 
 const router = useRouter()
+
+const team = ref({} as any)
 
 const game_id = ref('')
 const reports = ref([] as any[])
@@ -104,11 +119,19 @@ const get_reports = async () => {
     }
 }
 
+const get_self = async () => {
+    const data = await api_game_defender_self(game_id.value)
+    if (data.code === 0) {
+        team.value = data.data.defender
+    }
+}
+
 onMounted(() => {
     const id = router.currentRoute.value.params.id as string
     if (id) {
         game_id.value = id
         get_reports()
+        get_self()
     } else {
         router.back()
     }

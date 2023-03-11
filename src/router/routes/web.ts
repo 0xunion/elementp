@@ -21,6 +21,12 @@ export enum WebRoutesHome {
     FILE = '@/views/web/home/home.vue',
 }
 
+export enum WebRoutesResetPassword {
+    PATH = '/web/reset_password',
+    NAME = 'web_reset_password',
+    FILE = '@/views/web/home/resetpassword.vue',
+}
+
 import { RouteRecordRaw } from 'vue-router'
 import store from '@/store'
 
@@ -55,6 +61,15 @@ const routes: RouteRecordRaw = {
             }
         },
         {
+            path: WebRoutesResetPassword.PATH,
+            name: WebRoutesResetPassword.NAME,
+            component: () => import(WebRoutesResetPassword.FILE),
+            meta : {
+                title: '重置密码',
+                require: notRequire,
+            },
+        },
+        {
             path: WebRoutesAdmin.PATH,
             name: WebRoutesAdmin.NAME,
             component: () => import(WebRoutesAdmin.FILE),
@@ -77,7 +92,7 @@ const routes: RouteRecordRaw = {
         {
             path: WebRoutes.PATH,
             redirect: WebRoutesHome.PATH
-        }
+        },
     ]
 }
 

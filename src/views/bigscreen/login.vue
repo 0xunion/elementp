@@ -107,9 +107,7 @@
                 message: '登录成功，即将跳转到个人中心'
             })
             setTimeout(() => {
-                router.push({
-                    name: WebRoutesHome.NAME
-                })
+                location.href = WebRoutesHome.PATH
             }, 1000)
         } else {
             ElNotification.error({

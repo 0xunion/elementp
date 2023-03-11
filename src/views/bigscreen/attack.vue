@@ -621,7 +621,7 @@
     .attack_page {
         width: calc(100% - 40px);
         height: 100%;
-        background-image: url('./assets/3f428650-0da6-11ed-a08a-4fd4b75099cf.png');
+        background-image: url('./assets/defender-background.png');
         background-size: 100% 100%;
         padding: 0 20px;
     }

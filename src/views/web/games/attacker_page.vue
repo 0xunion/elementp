@@ -4,6 +4,18 @@
             <el-row>
                 <el-col :span="24">
                     <h1>
+                        信息概览
+                    </h1>
+                    <div>
+                        队名 - {{ team.name }}
+                    </div>
+                    <div style="margin: 20px;">
+                        <cardinfo title="当前得分" :content="team.score"></cardinfo>
+                    </div>
+                    <el-divider></el-divider>
+                </el-col>
+                <el-col :span="24">
+                    <h1>
                         我提交的报告
                     </h1>
                 </el-col>
@@ -122,17 +134,26 @@
 
 <script lang="ts" setup>
     import { useRouter } from 'vue-router'
-    import { WebRoutesGamesReportEditor, WebRoutesGamesAttackEditor, WebRoutesGamesList, WebRoutesGamesAttackReportDetail, WebRoutesGamesJudgeAttacks } from '@/router/routes/game'
+    import { 
+        WebRoutesGamesReportEditor, 
+        WebRoutesGamesAttackEditor, 
+        WebRoutesGamesList, 
+        WebRoutesGamesAttackReportDetail, 
+        WebRoutesGamesJudgeAttacks 
+    } from '@/router/routes/game'
     import { ref, onMounted, watch } from 'vue'
 
     import { 
         api_game_attacker_attack_list,
         api_game_attacker_report_delete, 
         api_game_attacker_report_list,
-        api_game_attacker_report_section
+        api_game_attacker_report_section,
+        api_game_attacker_self
     } from '@/api/game';
     import { isSuccess } from '@/api/utils';
     import { ElNotification } from 'element-plus';
+
+    import cardinfo from '@/components/cardinfo.vue';
 
     class Section {
         name: string = ''
@@ -178,6 +199,7 @@
 
     const reports = ref([])
     const attacks = ref([])
+    const team = ref({} as any)
 
     const reports_page = ref(1)
     const attacks_page = ref(1)
@@ -194,6 +216,18 @@
         const data = await api_game_attacker_report_list(game_id.value, reports_page.value, 20)
         if (isSuccess(data)) {
             reports.value = data.data.reports
+        } else {
+            ElNotification.error({
+                title: '提示',
+                message: data.message
+            })
+        }
+    }
+
+    const getTeam = async () => {
+        const data = await api_game_attacker_self(game_id.value)
+        if (isSuccess(data)) {
+            team.value = data.data.team
         } else {
             ElNotification.error({
                 title: '提示',
@@ -236,6 +270,7 @@
             game_id.value = id
             getReports()
             getAttacks()
+            getTeam()
         } else {
             router.push({
                 path : WebRoutesGamesList.PATH
